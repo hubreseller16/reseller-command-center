@@ -32,25 +32,32 @@ type DashboardSummary = {
 
 async function fetchDashboardSummary(): Promise<DashboardSummary> {
   // Wire to real tables as each Wall provisions its schema.
-  // Any table that doesn't exist yet returns an error → counted as 0.
-  const count = async (table: string, filter?: (q: ReturnType<typeof supabase.from>) => unknown) => {
+  // Any table that doesn't exist yet resolves to 0 — no mock data is shown.
+  const safeCount = async (table: string, statusCol?: string, statusVal?: string): Promise<number> => {
     try {
-      let q = supabase.from(table).select("*", { count: "exact", head: true });
-      if (filter) q = filter(q) as typeof q;
-      const { count: c, error } = await q;
-      if (error) return 0;
-      return c ?? 0;
-    } catch { return 0; }
+      const client = supabase as unknown as {
+        from: (t: string) => {
+          select: (sel: string, opts: { count: "exact"; head: true }) => {
+            eq: (c: string, v: string) => Promise<{ count: number | null; error: unknown }>;
+          } & Promise<{ count: number | null; error: unknown }>;
+        };
+      };
+      const q = client.from(table).select("*", { count: "exact", head: true });
+      const res = statusCol && statusVal ? await q.eq(statusCol, statusVal) : await q;
+      if (res.error) return 0;
+      return res.count ?? 0;
+    } catch {
+      return 0;
+    }
   };
-  const sum = async (_table: string, _column: string) => 0;
 
   const [resellers, pendingKyc, pendingApprovals, orders, activeLicenses, openTickets] = await Promise.all([
-    count("resellers"),
-    count("kyc_submissions", (q) => q.eq("status" as never, "pending" as never)),
-    count("approval_requests", (q) => q.eq("status" as never, "pending" as never)),
-    count("orders"),
-    count("licenses", (q) => q.eq("status" as never, "active" as never)),
-    count("support_tickets", (q) => q.eq("status" as never, "open" as never)),
+    safeCount("resellers"),
+    safeCount("kyc_submissions", "status", "pending"),
+    safeCount("approval_requests", "status", "pending"),
+    safeCount("orders"),
+    safeCount("licenses", "status", "active"),
+    safeCount("support_tickets", "status", "open"),
   ]);
 
   return {
@@ -58,12 +65,13 @@ async function fetchDashboardSummary(): Promise<DashboardSummary> {
     pendingKyc,
     pendingApprovals,
     orders,
-    walletBalance: await sum("wallet_transactions", "amount"),
-    commissionPayable: await sum("commission_ledger", "amount"),
+    walletBalance: 0,
+    commissionPayable: 0,
     activeLicenses,
     openTickets,
   };
 }
+
 
 function DashboardWall() {
   const { data, isLoading, refetch, isFetching } = useQuery({
