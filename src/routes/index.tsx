@@ -278,38 +278,45 @@ const STATUS_TONE: Record<Reseller["status"], "success" | "warning" | "danger" |
 
 function ResellerManager() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <TopBar />
+    <WorkflowProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        <TopBar />
 
-      <main className="mx-auto max-w-[1600px] space-y-12 px-4 py-8 lg:px-8">
-        <ExecutiveBanner />
-        <KPISection />
-        <QuickActionsSection />
-        <DirectorySection />
-        <TwoCol>
-          <VerificationQueue />
-          <LeadDistribution />
-        </TwoCol>
-        <TwoCol>
-          <CommissionCenter />
-          <WalletCenter />
-        </TwoCol>
-        <TwoCol>
-          <SubscriptionCenter />
-          <LicenseCenter />
-        </TwoCol>
-        <SupportCenter />
-        <PerformanceAnalytics />
-        <RevenueAnalytics />
-        <TwoCol>
-          <ActivityTimeline />
-          <AuditLogs />
-        </TwoCol>
-        <Footer />
-      </main>
-    </div>
+        <main className="mx-auto max-w-[1600px] space-y-12 px-4 py-8 lg:px-8">
+          <ExecutiveBanner />
+          <KPISection />
+          <QuickActionsSection />
+          <Section id="approvals" eyebrow="Workflow" title="Approval Workflow"
+            subtitle="Every sensitive action is routed through this inbox. Approve, reject and audit-trail in one place.">
+            <ApprovalInbox />
+          </Section>
+          <DirectorySection />
+          <TwoCol>
+            <VerificationQueue />
+            <LeadDistribution />
+          </TwoCol>
+          <TwoCol>
+            <CommissionCenter />
+            <WalletCenter />
+          </TwoCol>
+          <TwoCol>
+            <SubscriptionCenter />
+            <LicenseCenter />
+          </TwoCol>
+          <SupportCenter />
+          <PerformanceAnalytics />
+          <RevenueAnalytics />
+          <TwoCol>
+            <ActivityTimeline />
+            <AuditLogs />
+          </TwoCol>
+          <Footer />
+        </main>
+      </div>
+    </WorkflowProvider>
   );
 }
+
 
 function TwoCol({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">{children}</div>;
