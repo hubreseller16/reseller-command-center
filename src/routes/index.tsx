@@ -434,12 +434,15 @@ function QuickActionsSection() {
 /* Directory */
 function DirectorySection() {
   const [tab, setTab] = useState("All");
+  const { openDrawer, openAction, statusOverride } = useWorkflow();
   const tabs = ["All", "Active", "Pending", "Suspended", "Inactive", "Diamond", "Enterprise"];
   const rows = useMemo(() => {
-    if (tab === "All") return RESELLERS;
-    if (["Diamond", "Enterprise"].includes(tab)) return RESELLERS.filter((r) => r.tier === tab);
-    return RESELLERS.filter((r) => r.status === tab);
-  }, [tab]);
+    const withOverride = RESELLERS.map((r) => ({ ...r, status: statusOverride[r.id] || r.status }));
+    if (tab === "All") return withOverride;
+    if (["Diamond", "Enterprise"].includes(tab)) return withOverride.filter((r) => r.tier === tab);
+    return withOverride.filter((r) => r.status === tab);
+  }, [tab, statusOverride]);
+
 
   return (
     <Section id="directory" eyebrow="Network" title="Reseller Directory" subtitle="Search, filter, segment and act on every reseller."
