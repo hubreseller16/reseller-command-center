@@ -373,7 +373,7 @@ function KPISection() {
                 k.tone === "danger" ? "bg-destructive/10 text-destructive" :
                 "bg-primary-soft text-primary"
               }`}>
-                <k.icon className="h-4.5 w-4.5" />
+                <k.icon className="h-4 w-4" />
               </div>
               <span className={`inline-flex items-center gap-0.5 text-[11px] font-bold ${k.up ? "text-success" : "text-destructive"}`}>
                 {k.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}{k.delta}
