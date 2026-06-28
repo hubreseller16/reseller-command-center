@@ -520,11 +520,29 @@ function DirectorySection() {
                   <td className="px-3 py-3 text-xs text-muted-foreground">{r.last}</td>
                   <td className="px-3 py-3 text-right">
                     <div className="inline-flex gap-1">
-                      <IconBtn label="View"><Search className="h-3.5 w-3.5" /></IconBtn>
-                      <IconBtn label="Edit"><Settings2 className="h-3.5 w-3.5" /></IconBtn>
-                      <IconBtn label="More"><MoreHorizontal className="h-3.5 w-3.5" /></IconBtn>
+                      <button onClick={() => openDrawer(r, r.status)} title="Open details"
+                        className="inline-flex h-9 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-semibold hover:bg-accent">
+                        <Search className="h-3.5 w-3.5" /> View
+                      </button>
+                      <button onClick={() => openAction("approve", r)} aria-label="Approve" title="Approve"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-success hover:bg-success/10">
+                        <BadgeCheck className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openAction("suspend", r)} aria-label="Suspend" title="Suspend"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-warning-foreground hover:bg-warning/15">
+                        <ShieldAlert className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openAction("verify_kyc", r)} aria-label="Verify KYC" title="Verify KYC"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-info hover:bg-info/10">
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openDrawer(r, r.status)} aria-label="More" title="More"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent">
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
