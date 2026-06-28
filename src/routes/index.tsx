@@ -401,23 +401,35 @@ function KPISection() {
 }
 
 function QuickActionsSection() {
+  const { openAction } = useWorkflow();
+  const workflowMap: Record<string, ActionKind> = {
+    "Approve": "approve", "Reject": "reject", "Suspend": "suspend", "Activate": "activate", "Verify KYC": "verify_kyc",
+  };
+  // Trigger workflow against the first reseller as a demo target
+  const demoTarget = RESELLERS[0];
   return (
-    <Section id="quick-actions" eyebrow="One-click" title="Quick Actions" subtitle="Founder-level controls. Every action is audited and notification-wired.">
+    <Section id="quick-actions" eyebrow="One-click" title="Quick Actions" subtitle="Founder-level controls. Every action is audited and routed through the approval workflow.">
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
-          {QUICK.map((a) => (
-            <button key={a.label} className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-xs font-semibold hover:border-primary/40 hover:bg-primary-soft hover:text-primary">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-muted text-foreground/70 group-hover:bg-primary group-hover:text-primary-foreground">
-                <a.icon className="h-3.5 w-3.5" />
-              </span>
-              <span className="truncate">{a.label}</span>
-            </button>
-          ))}
+          {QUICK.map((a) => {
+            const wf = workflowMap[a.label];
+            return (
+              <button key={a.label}
+                onClick={() => wf && openAction(wf, demoTarget)}
+                className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-xs font-semibold hover:border-primary/40 hover:bg-primary-soft hover:text-primary">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-muted text-foreground/70 group-hover:bg-primary group-hover:text-primary-foreground">
+                  <a.icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate">{a.label}</span>
+              </button>
+            );
+          })}
         </div>
       </Card>
     </Section>
   );
 }
+
 
 /* Directory */
 function DirectorySection() {
