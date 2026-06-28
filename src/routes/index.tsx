@@ -6,10 +6,15 @@ import {
   Clock, Cog, CreditCard, Crown, Download, FileText, Filter, Flag, Gauge,
   Globe2, Headphones, KeyRound, LayoutDashboard, LifeBuoy, LineChart, Mail,
   MapPin, MessageSquare, MoreHorizontal, PackageCheck, PieChart, Plus, Receipt,
-  RefreshCcw, Search, Send, Settings2, Shield, ShieldCheck, Sparkles,
+  RefreshCcw, Search, Send, Settings2, Shield, ShieldAlert, ShieldCheck, Sparkles,
   Star, Store, Ticket, TrendingDown, TrendingUp, Upload, UserCheck, UserPlus,
-  Users, Wallet, Zap,
+  Users, Wallet, XCircle, Zap,
 } from "lucide-react";
+import {
+  ACTION_META, ApprovalInbox, useWorkflow, WorkflowActivityList, WorkflowAuditRows,
+  WorkflowProvider, type ActionKind,
+} from "@/components/reseller/workflow";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -273,38 +278,45 @@ const STATUS_TONE: Record<Reseller["status"], "success" | "warning" | "danger" |
 
 function ResellerManager() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <TopBar />
+    <WorkflowProvider>
+      <div className="min-h-screen bg-background text-foreground">
+        <TopBar />
 
-      <main className="mx-auto max-w-[1600px] space-y-12 px-4 py-8 lg:px-8">
-        <ExecutiveBanner />
-        <KPISection />
-        <QuickActionsSection />
-        <DirectorySection />
-        <TwoCol>
-          <VerificationQueue />
-          <LeadDistribution />
-        </TwoCol>
-        <TwoCol>
-          <CommissionCenter />
-          <WalletCenter />
-        </TwoCol>
-        <TwoCol>
-          <SubscriptionCenter />
-          <LicenseCenter />
-        </TwoCol>
-        <SupportCenter />
-        <PerformanceAnalytics />
-        <RevenueAnalytics />
-        <TwoCol>
-          <ActivityTimeline />
-          <AuditLogs />
-        </TwoCol>
-        <Footer />
-      </main>
-    </div>
+        <main className="mx-auto max-w-[1600px] space-y-12 px-4 py-8 lg:px-8">
+          <ExecutiveBanner />
+          <KPISection />
+          <QuickActionsSection />
+          <Section id="approvals" eyebrow="Workflow" title="Approval Workflow"
+            subtitle="Every sensitive action is routed through this inbox. Approve, reject and audit-trail in one place.">
+            <ApprovalInbox />
+          </Section>
+          <DirectorySection />
+          <TwoCol>
+            <VerificationQueue />
+            <LeadDistribution />
+          </TwoCol>
+          <TwoCol>
+            <CommissionCenter />
+            <WalletCenter />
+          </TwoCol>
+          <TwoCol>
+            <SubscriptionCenter />
+            <LicenseCenter />
+          </TwoCol>
+          <SupportCenter />
+          <PerformanceAnalytics />
+          <RevenueAnalytics />
+          <TwoCol>
+            <ActivityTimeline />
+            <AuditLogs />
+          </TwoCol>
+          <Footer />
+        </main>
+      </div>
+    </WorkflowProvider>
   );
 }
+
 
 function TwoCol({ children }: { children: React.ReactNode }) {
   return <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">{children}</div>;
@@ -389,33 +401,48 @@ function KPISection() {
 }
 
 function QuickActionsSection() {
+  const { openAction } = useWorkflow();
+  const workflowMap: Record<string, ActionKind> = {
+    "Approve": "approve", "Reject": "reject", "Suspend": "suspend", "Activate": "activate", "Verify KYC": "verify_kyc",
+  };
+  // Trigger workflow against the first reseller as a demo target
+  const demoTarget = RESELLERS[0];
   return (
-    <Section id="quick-actions" eyebrow="One-click" title="Quick Actions" subtitle="Founder-level controls. Every action is audited and notification-wired.">
+    <Section id="quick-actions" eyebrow="One-click" title="Quick Actions" subtitle="Founder-level controls. Every action is audited and routed through the approval workflow.">
       <Card className="p-4">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
-          {QUICK.map((a) => (
-            <button key={a.label} className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-xs font-semibold hover:border-primary/40 hover:bg-primary-soft hover:text-primary">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-muted text-foreground/70 group-hover:bg-primary group-hover:text-primary-foreground">
-                <a.icon className="h-3.5 w-3.5" />
-              </span>
-              <span className="truncate">{a.label}</span>
-            </button>
-          ))}
+          {QUICK.map((a) => {
+            const wf = workflowMap[a.label];
+            return (
+              <button key={a.label}
+                onClick={() => wf && openAction(wf, demoTarget)}
+                className="group flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2.5 text-left text-xs font-semibold hover:border-primary/40 hover:bg-primary-soft hover:text-primary">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-muted text-foreground/70 group-hover:bg-primary group-hover:text-primary-foreground">
+                  <a.icon className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate">{a.label}</span>
+              </button>
+            );
+          })}
         </div>
       </Card>
     </Section>
   );
 }
 
+
 /* Directory */
 function DirectorySection() {
   const [tab, setTab] = useState("All");
+  const { openDrawer, openAction, statusOverride } = useWorkflow();
   const tabs = ["All", "Active", "Pending", "Suspended", "Inactive", "Diamond", "Enterprise"];
   const rows = useMemo(() => {
-    if (tab === "All") return RESELLERS;
-    if (["Diamond", "Enterprise"].includes(tab)) return RESELLERS.filter((r) => r.tier === tab);
-    return RESELLERS.filter((r) => r.status === tab);
-  }, [tab]);
+    const withOverride = RESELLERS.map((r) => ({ ...r, status: statusOverride[r.id] || r.status }));
+    if (tab === "All") return withOverride;
+    if (["Diamond", "Enterprise"].includes(tab)) return withOverride.filter((r) => r.tier === tab);
+    return withOverride.filter((r) => r.status === tab);
+  }, [tab, statusOverride]);
+
 
   return (
     <Section id="directory" eyebrow="Network" title="Reseller Directory" subtitle="Search, filter, segment and act on every reseller."
@@ -493,11 +520,29 @@ function DirectorySection() {
                   <td className="px-3 py-3 text-xs text-muted-foreground">{r.last}</td>
                   <td className="px-3 py-3 text-right">
                     <div className="inline-flex gap-1">
-                      <IconBtn label="View"><Search className="h-3.5 w-3.5" /></IconBtn>
-                      <IconBtn label="Edit"><Settings2 className="h-3.5 w-3.5" /></IconBtn>
-                      <IconBtn label="More"><MoreHorizontal className="h-3.5 w-3.5" /></IconBtn>
+                      <button onClick={() => openDrawer(r, r.status)} title="Open details"
+                        className="inline-flex h-9 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-semibold hover:bg-accent">
+                        <Search className="h-3.5 w-3.5" /> View
+                      </button>
+                      <button onClick={() => openAction("approve", r)} aria-label="Approve" title="Approve"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-success hover:bg-success/10">
+                        <BadgeCheck className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openAction("suspend", r)} aria-label="Suspend" title="Suspend"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-warning-foreground hover:bg-warning/15">
+                        <ShieldAlert className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openAction("verify_kyc", r)} aria-label="Verify KYC" title="Verify KYC"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface text-info hover:bg-info/10">
+                        <ShieldCheck className="h-3.5 w-3.5" />
+                      </button>
+                      <button onClick={() => openDrawer(r, r.status)} aria-label="More" title="More"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent">
+                        <MoreHorizontal className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
@@ -923,27 +968,32 @@ function ActivityTimeline() {
   ];
   return (
     <Section id="timeline" eyebrow="Realtime" title="Activity Timeline" subtitle="Recent platform events across the reseller network.">
-      <Card className="p-2">
-        <ol className="relative ml-4 border-l border-border">
-          {items.map((it, idx) => (
-            <li key={idx} className="ml-4 py-3.5">
-              <span className={`absolute -left-[9px] grid h-4 w-4 place-items-center rounded-full ring-4 ring-card ${
-                it.tone === "success" ? "bg-success" : it.tone === "danger" ? "bg-destructive" : it.tone === "primary" ? "bg-primary" : "bg-info"
-              }`} />
-              <div className="flex items-center gap-2.5">
-                <it.i className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-semibold">{it.t}</div>
-                  <div className="text-[11px] text-muted-foreground">{it.who}</div>
+      <Card className="p-4 space-y-3">
+        <WorkflowActivityList />
+        <div className="border-t border-dashed border-border pt-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Earlier today</div>
+          <ol className="relative ml-4 border-l border-border">
+            {items.map((it, idx) => (
+              <li key={idx} className="ml-4 py-3">
+                <span className={`absolute -left-[9px] grid h-4 w-4 place-items-center rounded-full ring-4 ring-card ${
+                  it.tone === "success" ? "bg-success" : it.tone === "danger" ? "bg-destructive" : it.tone === "primary" ? "bg-primary" : "bg-info"
+                }`} />
+                <div className="flex items-center gap-2.5">
+                  <it.i className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-semibold">{it.t}</div>
+                    <div className="text-[11px] text-muted-foreground">{it.who}</div>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ol>
+              </li>
+            ))}
+          </ol>
+        </div>
       </Card>
     </Section>
   );
 }
+
 
 function AuditLogs() {
   const logs = [
@@ -970,6 +1020,7 @@ function AuditLogs() {
             </tr>
           </thead>
           <tbody>
+            <WorkflowAuditRows />
             {logs.map((l, i) => (
               <tr key={i} className="border-t border-border font-mono text-xs">
                 <td className="px-3 py-2.5">{l.actor}</td>
@@ -981,6 +1032,7 @@ function AuditLogs() {
               </tr>
             ))}
           </tbody>
+
         </table>
       </Card>
     </Section>
