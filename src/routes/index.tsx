@@ -968,27 +968,32 @@ function ActivityTimeline() {
   ];
   return (
     <Section id="timeline" eyebrow="Realtime" title="Activity Timeline" subtitle="Recent platform events across the reseller network.">
-      <Card className="p-2">
-        <ol className="relative ml-4 border-l border-border">
-          {items.map((it, idx) => (
-            <li key={idx} className="ml-4 py-3.5">
-              <span className={`absolute -left-[9px] grid h-4 w-4 place-items-center rounded-full ring-4 ring-card ${
-                it.tone === "success" ? "bg-success" : it.tone === "danger" ? "bg-destructive" : it.tone === "primary" ? "bg-primary" : "bg-info"
-              }`} />
-              <div className="flex items-center gap-2.5">
-                <it.i className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm font-semibold">{it.t}</div>
-                  <div className="text-[11px] text-muted-foreground">{it.who}</div>
+      <Card className="p-4 space-y-3">
+        <WorkflowActivityList />
+        <div className="border-t border-dashed border-border pt-3">
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Earlier today</div>
+          <ol className="relative ml-4 border-l border-border">
+            {items.map((it, idx) => (
+              <li key={idx} className="ml-4 py-3">
+                <span className={`absolute -left-[9px] grid h-4 w-4 place-items-center rounded-full ring-4 ring-card ${
+                  it.tone === "success" ? "bg-success" : it.tone === "danger" ? "bg-destructive" : it.tone === "primary" ? "bg-primary" : "bg-info"
+                }`} />
+                <div className="flex items-center gap-2.5">
+                  <it.i className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-semibold">{it.t}</div>
+                    <div className="text-[11px] text-muted-foreground">{it.who}</div>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
-        </ol>
+              </li>
+            ))}
+          </ol>
+        </div>
       </Card>
     </Section>
   );
 }
+
 
 function AuditLogs() {
   const logs = [
