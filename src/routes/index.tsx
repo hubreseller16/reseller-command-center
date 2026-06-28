@@ -1020,6 +1020,7 @@ function AuditLogs() {
             </tr>
           </thead>
           <tbody>
+            <WorkflowAuditRows />
             {logs.map((l, i) => (
               <tr key={i} className="border-t border-border font-mono text-xs">
                 <td className="px-3 py-2.5">{l.actor}</td>
@@ -1031,6 +1032,7 @@ function AuditLogs() {
               </tr>
             ))}
           </tbody>
+
         </table>
       </Card>
     </Section>
