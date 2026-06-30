@@ -5,6 +5,7 @@ import {
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
   Headphones, Settings, ChevronDown, Search, Crown,
 } from "lucide-react";
+import { SubBar } from "./SubBar";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 export type WallNavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } | WallNavItem;
@@ -154,6 +155,7 @@ export function WallShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <TopBar />
+      <SubBar />
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">{children}</main>
     </div>
   );
