@@ -151,9 +151,14 @@ export function TopBar() {
 }
 
 export function WallShell({ children }: { children: ReactNode }) {
+  // Lazy import to avoid circular reference with SubBar (which imports NAV from this file).
+  // SubBar is a sibling module so a direct import is fine here.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { SubBar } = require("./SubBar") as typeof import("./SubBar");
   return (
     <div className="min-h-screen bg-background text-foreground">
       <TopBar />
+      <SubBar />
       <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">{children}</main>
     </div>
   );
