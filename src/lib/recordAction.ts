@@ -29,20 +29,20 @@ export async function recordAction(input: RecordActionInput): Promise<void> {
   const { action, entityType, entityId = null, summary, verb, before = null, after = null, notify } = input;
 
   // Fire-and-forget; collect promises so we can settle in parallel.
-  const tasks: Promise<unknown>[] = [];
+  const tasks: PromiseLike<unknown>[] = [];
 
   tasks.push(
     supabase.from("audit_logs").insert({
       action, entity_type: entityType, entity_id: entityId,
       before, after,
-    }),
+    }).then((r) => r),
   );
 
   tasks.push(
     supabase.from("activity_events").insert({
       verb: verb ?? action, entity_type: entityType, entity_id: entityId,
       summary, metadata: {},
-    }),
+    }).then((r) => r),
   );
 
   if (notify && notify.recipientId) {
@@ -56,7 +56,7 @@ export async function recordAction(input: RecordActionInput): Promise<void> {
         entity_type: entityType,
         entity_id: entityId,
         metadata: {},
-      }),
+      }).then((r) => r),
     );
   }
 
