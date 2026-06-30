@@ -21,6 +21,7 @@ export const NAV: WallNavGroup[] = [
   },
   {
     label: "People", icon: Users, items: [
+      { to: "/resellers", label: "Resellers", icon: Users },
       { to: "/customers", label: "Customers", icon: Users },
       { to: "/kyc", label: "KYC", icon: ShieldCheck },
       { to: "/approvals", label: "Approvals", icon: BadgeCheck },

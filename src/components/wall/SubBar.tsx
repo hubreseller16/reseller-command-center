@@ -53,7 +53,7 @@ export function SubBar() {
     );
   }
 
-  const current = NAV_MAP[pathname];
+  const current = flattenNav()[pathname];
 
   return (
     <div className="border-b border-border/60 bg-surface/40">
