@@ -5,6 +5,7 @@ import {
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
   Headphones, Settings, ChevronDown, Search, Crown,
 } from "lucide-react";
+import { SubBar } from "./SubBar";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 export type WallNavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } | WallNavItem;
