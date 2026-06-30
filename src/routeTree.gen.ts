@@ -13,6 +13,7 @@ import { Route as WalletRouteImport } from './routes/wallet'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResellersRouteImport } from './routes/resellers'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as OrdersRouteImport } from './routes/orders'
@@ -44,6 +45,11 @@ const SubscriptionsRoute = SubscriptionsRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResellersRoute = ResellersRouteImport.update({
+  id: '/resellers',
+  path: '/resellers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
+  '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
+  '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/orders': typeof OrdersRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
+  '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/products'
     | '/reports'
+    | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
@@ -195,6 +205,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/products'
     | '/reports'
+    | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/products'
     | '/reports'
+    | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
@@ -232,6 +244,7 @@ export interface RootRouteChildren {
   OrdersRoute: typeof OrdersRoute
   ProductsRoute: typeof ProductsRoute
   ReportsRoute: typeof ReportsRoute
+  ResellersRoute: typeof ResellersRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
   SupportRoute: typeof SupportRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resellers': {
+      id: '/resellers'
+      path: '/resellers'
+      fullPath: '/resellers'
+      preLoaderRoute: typeof ResellersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -368,6 +388,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrdersRoute: OrdersRoute,
   ProductsRoute: ProductsRoute,
   ReportsRoute: ReportsRoute,
+  ResellersRoute: ResellersRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
   SupportRoute: SupportRoute,
