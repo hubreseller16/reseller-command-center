@@ -8,7 +8,7 @@ import { NAV, type WallNavItem } from "./Shell";
  */
 function flattenNav(): Record<string, { label: string; group?: string }> {
   const map: Record<string, { label: string; group?: string }> = {};
-  for (const n of NAV) {
+  for (const n of NAV ?? []) {
     if ("items" in n) {
       for (const i of n.items as WallNavItem[]) map[i.to] = { label: i.label, group: n.label };
     } else {
@@ -17,8 +17,6 @@ function flattenNav(): Record<string, { label: string; group?: string }> {
   }
   return map;
 }
-
-const NAV_MAP = flattenNav();
 
 /**
  * UI-only permission badge. Real role checks will be wired by the parent
