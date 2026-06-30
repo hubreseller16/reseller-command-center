@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WallShell } from "@/components/wall/Shell";
+import { Toaster } from "@/components/ui/sonner";
 
 
 function NotFoundComponent() {
@@ -95,6 +96,7 @@ function RootComponent() {
       <WallShell>
         <Outlet />
       </WallShell>
+      <Toaster richColors position="top-right" />
     </QueryClientProvider>
   );
 }
