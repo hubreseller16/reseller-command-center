@@ -644,6 +644,24 @@ function Row({ icon: Icon, label, value }: { icon: React.ComponentType<{ classNa
   );
 }
 
+function KycItem({ label, state }: { label: string; state: string }) {
+  const ok = state === "verified";
+  const rej = state === "rejected";
+  const Icon = ok ? CheckCircle2 : rej ? XCircle : ShieldAlert;
+  const color = ok ? "text-emerald-600 dark:text-emerald-400"
+    : rej ? "text-rose-600 dark:text-rose-400"
+    : "text-amber-600 dark:text-amber-400";
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-border bg-surface/50 px-2.5 py-2">
+      <Icon className={`h-3.5 w-3.5 ${color}`} />
+      <div className="min-w-0 flex-1 truncate text-[12px] font-medium">{label}</div>
+      <span className={`text-[10px] font-semibold uppercase tracking-wider ${color}`}>{ok ? "OK" : rej ? "Rej" : "Pend"}</span>
+    </div>
+  );
+}
+
+
+
 // ───────── Activity / Audit / Notifications list ─────────
 function EntityList({ entityType, entityId, kind }: { entityType: string; entityId: string; kind: "activity" | "audit" | "notifs" }) {
   const { data = [], isLoading, isError, error } = useQuery({
