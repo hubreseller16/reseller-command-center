@@ -504,12 +504,16 @@ function DetailDrawer({
             </SheetHeader>
 
             <Tabs defaultValue="overview" className="mt-5">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="commerce">Commerce</TabsTrigger>
-                <TabsTrigger value="activity">Activity</TabsTrigger>
-                <TabsTrigger value="audit">Audit</TabsTrigger>
-                <TabsTrigger value="notifs">Notifs</TabsTrigger>
+              <TabsList className="flex w-full flex-wrap gap-1 bg-muted/60 p-1 h-auto">
+                <TabsTrigger value="overview" className="text-[11px]">Overview</TabsTrigger>
+                <TabsTrigger value="kyc" className="text-[11px]">KYC</TabsTrigger>
+                <TabsTrigger value="wallet" className="text-[11px]">Wallet</TabsTrigger>
+                <TabsTrigger value="commissions" className="text-[11px]">Commissions</TabsTrigger>
+                <TabsTrigger value="licenses" className="text-[11px]">Licenses</TabsTrigger>
+                <TabsTrigger value="customers" className="text-[11px]">Customers</TabsTrigger>
+                <TabsTrigger value="orders" className="text-[11px]">Orders</TabsTrigger>
+                <TabsTrigger value="timeline" className="text-[11px]">Timeline</TabsTrigger>
+                <TabsTrigger value="audit" className="text-[11px]">Audit</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-3 pt-4">
@@ -522,6 +526,12 @@ function DetailDrawer({
                     <Row icon={MapPin} label="Region" value={row.region ?? "—"} />
                   </dl>
                 </Card>
+                <div className="grid grid-cols-2 gap-3">
+                  <KPI label="Wallet" value="₹0" icon={Wallet} hint="No txns yet" />
+                  <KPI label="Commission" value="₹0" icon={Percent} hint="Lifetime" />
+                  <KPI label="Orders" value={0} icon={ShoppingCart} hint="All time" />
+                  <KPI label="Licenses" value={0} icon={KeyRound} hint="Active" />
+                </div>
                 {row.notes && (
                   <Card className="p-4">
                     <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Notes</h4>
@@ -533,25 +543,84 @@ function DetailDrawer({
                 </Card>
               </TabsContent>
 
-              <TabsContent value="commerce" className="grid grid-cols-2 gap-3 pt-4">
-                <KPI label="Wallet" value="₹0" icon={Wallet} hint="No txns yet" />
-                <KPI label="Commission" value="₹0" icon={Percent} hint="Lifetime" />
-                <KPI label="Orders" value={0} icon={ShoppingCart} hint="All time" />
-                <KPI label="Licenses" value={0} icon={KeyRound} hint="Active" />
+              <TabsContent value="kyc" className="space-y-3 pt-4">
+                <Card className="p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Verification Status</h4>
+                    <KycBadge status={row.kyc_status} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-[12px]">
+                    <KycItem label="Identity (PAN)" state={row.kyc_status} />
+                    <KycItem label="Business Reg." state={row.kyc_status} />
+                    <KycItem label="GST" state={row.kyc_status} />
+                    <KycItem label="Address Proof" state={row.kyc_status} />
+                  </div>
+                  <div className="mt-4 flex gap-2">
+                    {row.kyc_status !== "verified" && (
+                      <Btn size="sm" onClick={() => onAction("verify")} leading={<ShieldCheck className="h-3.5 w-3.5" />}>Verify KYC</Btn>
+                    )}
+                    {row.kyc_status !== "rejected" && (
+                      <Btn size="sm" variant="outline" onClick={() => onAction("kyc_reject")} leading={<ShieldAlert className="h-3.5 w-3.5" />}>Reject KYC</Btn>
+                    )}
+                  </div>
+                </Card>
+                <EmptyState compact icon={ShieldCheck} title="No documents uploaded" description="Uploaded KYC documents will appear here with review actions." />
               </TabsContent>
 
-              <TabsContent value="activity" className="pt-4">
+              <TabsContent value="wallet" className="space-y-3 pt-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <KPI label="Balance" value="₹0" icon={Wallet} hint="Available" />
+                  <KPI label="Credits" value="₹0" icon={Percent} hint="Lifetime in" />
+                  <KPI label="Debits" value="₹0" icon={Percent} hint="Lifetime out" />
+                </div>
+                <EmptyState compact icon={Wallet} title="No wallet transactions" description="Credits, debits, adjustments and payouts will appear here." />
+              </TabsContent>
+
+              <TabsContent value="commissions" className="space-y-3 pt-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <KPI label="Pending" value="₹0" icon={Percent} hint="Awaiting approval" />
+                  <KPI label="Approved" value="₹0" icon={Percent} hint="Ready for payout" />
+                  <KPI label="Paid" value="₹0" icon={Percent} hint="Settled" />
+                </div>
+                <EmptyState compact icon={Percent} title="No commissions yet" description="Every earned commission line — rule, base, rate, amount — will appear here." />
+              </TabsContent>
+
+              <TabsContent value="licenses" className="space-y-3 pt-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <KPI label="Active" value={0} icon={KeyRound} hint="Currently valid" />
+                  <KPI label="Expiring" value={0} icon={KeyRound} hint="Next 30 days" />
+                  <KPI label="Revoked" value={0} icon={KeyRound} hint="Lifetime" />
+                </div>
+                <EmptyState compact icon={KeyRound} title="No licenses issued" description="Issued keys, activations, device bindings and renewals will appear here." />
+              </TabsContent>
+
+              <TabsContent value="customers" className="space-y-3 pt-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <KPI label="Total" value={0} icon={Users} hint="Onboarded" />
+                  <KPI label="Active" value={0} icon={Users} hint="Buying now" />
+                  <KPI label="LTV" value="₹0" icon={Percent} hint="Lifetime value" />
+                </div>
+                <EmptyState compact icon={Users} title="No customers yet" description="Customers this reseller has onboarded will appear here." />
+              </TabsContent>
+
+              <TabsContent value="orders" className="space-y-3 pt-4">
+                <div className="grid grid-cols-3 gap-3">
+                  <KPI label="Total" value={0} icon={ShoppingCart} hint="All time" />
+                  <KPI label="Revenue" value="₹0" icon={Percent} hint="Gross" />
+                  <KPI label="Refunds" value="₹0" icon={Percent} hint="Lifetime" />
+                </div>
+                <EmptyState compact icon={ShoppingCart} title="No orders yet" description="Orders sourced through this reseller will appear here." />
+              </TabsContent>
+
+              <TabsContent value="timeline" className="pt-4">
                 <EntityList entityType="reseller" entityId={row.id} kind="activity" />
               </TabsContent>
 
               <TabsContent value="audit" className="pt-4">
                 <EntityList entityType="reseller" entityId={row.id} kind="audit" />
               </TabsContent>
-
-              <TabsContent value="notifs" className="pt-4">
-                <EntityList entityType="reseller" entityId={row.id} kind="notifs" />
-              </TabsContent>
             </Tabs>
+
 
             <SheetFooter className="mt-6">
               <Btn variant="outline" onClick={() => onAction("delete")}>Delete reseller</Btn>
@@ -574,6 +643,24 @@ function Row({ icon: Icon, label, value }: { icon: React.ComponentType<{ classNa
     </div>
   );
 }
+
+function KycItem({ label, state }: { label: string; state: string }) {
+  const ok = state === "verified";
+  const rej = state === "rejected";
+  const Icon = ok ? CheckCircle2 : rej ? XCircle : ShieldAlert;
+  const color = ok ? "text-emerald-600 dark:text-emerald-400"
+    : rej ? "text-rose-600 dark:text-rose-400"
+    : "text-amber-600 dark:text-amber-400";
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-border bg-surface/50 px-2.5 py-2">
+      <Icon className={`h-3.5 w-3.5 ${color}`} />
+      <div className="min-w-0 flex-1 truncate text-[12px] font-medium">{label}</div>
+      <span className={`text-[10px] font-semibold uppercase tracking-wider ${color}`}>{ok ? "OK" : rej ? "Rej" : "Pend"}</span>
+    </div>
+  );
+}
+
+
 
 // ───────── Activity / Audit / Notifications list ─────────
 function EntityList({ entityType, entityId, kind }: { entityType: string; entityId: string; kind: "activity" | "audit" | "notifs" }) {
