@@ -1,10 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
-  Headphones, Settings, ChevronDown, Search, Crown,
+  Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
+  Sun, Moon, LifeBuoy, CheckCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 import { SubBar } from "./SubBar";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
