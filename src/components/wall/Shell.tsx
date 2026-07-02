@@ -1,10 +1,12 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
-  Headphones, Settings, ChevronDown, Search, Crown,
+  Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
+  Sun, Moon, LifeBuoy, CheckCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 import { SubBar } from "./SubBar";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
@@ -135,17 +137,9 @@ export function TopBar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search Walls, resellers, orders…"
-              className="h-9 w-[280px] rounded-md border border-border bg-surface pl-8 pr-3 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <button aria-label="Notifications" className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent">
-            <Bell className="h-4 w-4" />
-          </button>
-          <div className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold ring-2 ring-background">SV</div>
+          <GlobalSearch />
+          <NotificationsMenu />
+          <AvatarMenu />
         </div>
       </div>
     </header>
@@ -173,6 +167,229 @@ export function WallHeader({
         {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{subtitle}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/* ============================================================
+   Global Search — command-menu style, navigates to any Wall
+============================================================ */
+
+type FlatNav = { to: string; label: string; group?: string; icon: React.ComponentType<{ className?: string }> };
+function flattenNav(): FlatNav[] {
+  const out: FlatNav[] = [];
+  for (const n of NAV) {
+    if (isGroup(n)) {
+      for (const it of n.items) out.push({ ...it, group: n.label });
+    } else {
+      out.push({ to: n.to, label: n.label, icon: n.icon });
+    }
+  }
+  return out;
+}
+
+function useOutsideClose<T extends HTMLElement>(onClose: () => void) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) onClose(); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [onClose]);
+  return ref;
+}
+
+function GlobalSearch() {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const [active, setActive] = useState(0);
+  const navigate = useNavigate();
+  const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
+  const items = useMemo(() => flattenNav(), []);
+  const results = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return items;
+    return items.filter((i) =>
+      i.label.toLowerCase().includes(s) || (i.group ?? "").toLowerCase().includes(s) || i.to.toLowerCase().includes(s),
+    );
+  }, [items, q]);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setOpen(true); }
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
+
+  useEffect(() => { setActive(0); }, [q, open]);
+
+  const go = (to: string) => { setOpen(false); setQ(""); navigate({ to }); };
+
+  return (
+    <div ref={ref} className="relative">
+      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+      <input
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
+          else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+          else if (e.key === "Enter" && results[active]) { e.preventDefault(); go(results[active].to); }
+        }}
+        placeholder="Search Walls, resellers, orders…"
+        className="h-9 w-[280px] rounded-md border border-border bg-surface pl-8 pr-12 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      />
+      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">⌘K</kbd>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+          <div className="max-h-[360px] overflow-y-auto py-1">
+            {results.length === 0 ? (
+              <div className="px-3 py-8 text-center text-xs text-muted-foreground">No matches for "{q}"</div>
+            ) : (
+              results.map((r, idx) => {
+                const Icon = r.icon;
+                return (
+                  <button
+                    key={r.to}
+                    onMouseEnter={() => setActive(idx)}
+                    onClick={() => go(r.to)}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
+                      idx === active ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <span className="flex-1 font-medium">{r.label}</span>
+                    {r.group && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{r.group}</span>}
+                  </button>
+                );
+              })
+            )}
+          </div>
+          <div className="flex items-center justify-between border-t border-border bg-surface/60 px-3 py-1.5 text-[10px] text-muted-foreground">
+            <span>↑↓ navigate · ↵ open · esc close</span>
+            <span>{results.length} result{results.length === 1 ? "" : "s"}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Notifications — dropdown with empty state (API-ready)
+============================================================ */
+
+function NotificationsMenu() {
+  const [open, setOpen] = useState(false);
+  const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
+  const navigate = useNavigate();
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        aria-label="Notifications"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent"
+      >
+        <Bell className="h-4 w-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+          <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
+            <div className="text-sm font-semibold">Notifications</div>
+            <button
+              onClick={() => toast.info("All notifications marked as read")}
+              className="inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+            </button>
+          </div>
+          <div className="grid place-items-center gap-2 px-4 py-10 text-center">
+            <div className="grid h-10 w-10 place-items-center rounded-full bg-primary-soft text-primary">
+              <Inbox className="h-5 w-5" />
+            </div>
+            <div className="text-sm font-medium">You're all caught up</div>
+            <div className="max-w-[240px] text-xs text-muted-foreground">
+              System-wide alerts, approvals and reseller activity will land here.
+            </div>
+          </div>
+          <button
+            onClick={() => { setOpen(false); navigate({ to: "/notifications" }); }}
+            className="block w-full border-t border-border px-3 py-2 text-center text-xs font-semibold text-primary hover:bg-accent"
+          >
+            Open Notifications Wall →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Avatar menu — profile / theme / settings / sign out placeholders
+============================================================ */
+
+function AvatarMenu() {
+  const [open, setOpen] = useState(false);
+  const [dark, setDark] = useState<boolean>(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
+  const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
+  const navigate = useNavigate();
+
+  const toggleTheme = () => {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    toast.success(`${next ? "Dark" : "Light"} mode`);
+  };
+
+  const items: Array<{ icon: React.ComponentType<{ className?: string }>; label: string; onClick: () => void; danger?: boolean }> = [
+    { icon: User, label: "Profile", onClick: () => toast.info("Profile — coming with auth") },
+    { icon: Settings, label: "Preferences", onClick: () => { setOpen(false); navigate({ to: "/settings" }); } },
+    { icon: dark ? Sun : Moon, label: dark ? "Light mode" : "Dark mode", onClick: toggleTheme },
+    { icon: LifeBuoy, label: "Help & Support", onClick: () => { setOpen(false); navigate({ to: "/support" }); } },
+    { icon: LogOut, label: "Sign out", onClick: () => toast.info("Sign out — coming with auth"), danger: true },
+  ];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold ring-2 ring-background transition-transform hover:scale-105"
+      >
+        SV
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-[240px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+          <div className="flex items-center gap-3 border-b border-border px-3 py-3">
+            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold">SV</div>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-semibold">Software Vala Boss</div>
+              <div className="truncate text-[11px] text-muted-foreground">Full-access owner</div>
+            </div>
+          </div>
+          <div className="py-1">
+            {items.map((it) => {
+              const Icon = it.icon;
+              return (
+                <button
+                  key={it.label}
+                  onClick={() => { setOpen(false); it.onClick(); }}
+                  className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground ${
+                    it.danger ? "text-destructive" : ""
+                  }`}
+                >
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  {it.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
