@@ -137,17 +137,9 @@ export function TopBar() {
         </nav>
 
         <div className="hidden md:flex items-center gap-2">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <input
-              placeholder="Search Walls, resellers, orders…"
-              className="h-9 w-[280px] rounded-md border border-border bg-surface pl-8 pr-3 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <button aria-label="Notifications" className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent">
-            <Bell className="h-4 w-4" />
-          </button>
-          <div className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold ring-2 ring-background">SV</div>
+          <GlobalSearch />
+          <NotificationsMenu />
+          <AvatarMenu />
         </div>
       </div>
     </header>
