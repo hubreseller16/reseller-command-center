@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import {
   Users, Plus, Search, Filter, MoreHorizontal, XCircle, ArrowDownUp,
   UserCheck, Building2, Mail, Phone, MapPin, ShoppingCart, DollarSign,
-  Ban, CheckCircle2, Layers, Star, Trash2, Snowflake,
+  Ban, CheckCircle2, Layers, Star, Trash2, Snowflake, Activity,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
