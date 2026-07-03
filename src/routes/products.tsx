@@ -95,13 +95,38 @@ function ProductsWall() {
 
   const selected = rows.find((r) => r.id === openId) ?? null;
 
+  // register with global search
+  const entries = useMemo(
+    () => rows.map((r) => ({
+      scope: "products",
+      id: r.id,
+      label: r.name,
+      sub: `${r.sku} · ${r.category} · ₹${r.price.toLocaleString()}`,
+      route: "/products",
+      hay: `${r.sku} ${r.category} ${r.description} ${r.license_type}`,
+    })),
+    [rows],
+  );
+  useRegisterSearchScope("products", entries);
+  useEffect(() => {
+    const pending = consumePendingOpen("products");
+    if (pending) setOpenId(pending);
+  }, [rows]);
+
+  const toggleOne = (id: string) => setSelectedIds((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleAll = (checked: boolean) => setSelectedIds(checked ? new Set(filtered.map((r) => r.id)) : new Set());
+  const clearSel = () => setSelectedIds(new Set());
+  const allChecked = filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+
   function apply(update: (p: Product) => Product, action: string, summary: string) {
-    setRows((prev) => prev.map((p) => (p.id === (selected?.id ?? p.id) ? p : p)));
     return (row: Product) => {
       const updated = { ...update(row), updated_at: new Date().toISOString() };
       setRows((prev) => prev.map((p) => (p.id === row.id ? updated : p)));
       void recordAction({ action: `product.${action}`, entityType: "product", entityId: row.id, summary, before: row, after: updated });
-      toast.success(summary);
     };
   }
 
@@ -114,9 +139,28 @@ function ProductsWall() {
       void recordAction({ action: "product.duplicate", entityType: "product", entityId: copy.id, summary: `Duplicated "${row.name}"`, after: copy });
       return toast.success("Product duplicated");
     }
-    if (action === "publish") return apply((r) => ({ ...r, status: "active" }), "publish", `Published "${row.name}"`)(row);
-    if (action === "archive") return apply((r) => ({ ...r, status: "archived" }), "archive", `Archived "${row.name}"`)(row);
-    if (action === "draft") return apply((r) => ({ ...r, status: "draft" }), "draft", `Moved "${row.name}" to draft`)(row);
+    if (action === "publish") { apply((r) => ({ ...r, status: "active" }), "publish", `Published "${row.name}"`)(row); return toast.success(`Published "${row.name}"`); }
+    if (action === "archive") { apply((r) => ({ ...r, status: "archived" }), "archive", `Archived "${row.name}"`)(row); return toast.success(`Archived "${row.name}"`); }
+    if (action === "draft") { apply((r) => ({ ...r, status: "draft" }), "draft", `Moved "${row.name}" to draft`)(row); return toast.success(`Moved "${row.name}" to draft`); }
+  };
+
+  const runBulk = (key: string) => {
+    const targets = rows.filter((r) => selectedIds.has(r.id));
+    if (targets.length === 0) return;
+    if (key === "delete") {
+      const ids = new Set(targets.map((r) => r.id));
+      setRows((p) => p.filter((r) => !ids.has(r.id)));
+      targets.forEach((r) => void recordAction({ action: "product.bulk_delete", entityType: "product", entityId: r.id, summary: `Bulk deleted "${r.name}"`, before: r }));
+      if (openId && ids.has(openId)) setOpenId(null);
+      toast.success(`Deleted ${targets.length} product${targets.length === 1 ? "" : "s"}`);
+    } else if (key === "publish" || key === "archive" || key === "draft") {
+      const status = key === "publish" ? "active" : key === "archive" ? "archived" : "draft";
+      setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, status: status as Product["status"], updated_at: new Date().toISOString() } : r)));
+      targets.forEach((r) => void recordAction({ action: `product.bulk_${key}`, entityType: "product", entityId: r.id, summary: `Bulk ${key} "${r.name}"`, before: r, after: { ...r, status } }));
+      toast.success(`${cap(key === "publish" ? "published" : key === "archive" ? "archived" : "drafted")} ${targets.length} product${targets.length === 1 ? "" : "s"}`);
+    }
+    clearSel();
+    setBulkConfirm(null);
   };
 
   return (
