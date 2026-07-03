@@ -67,6 +67,9 @@ function OrdersWall() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState<Order | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string }>(null);
+
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
