@@ -4,10 +4,11 @@ import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
   Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
-  Sun, Moon, LifeBuoy, CheckCheck,
+  Sun, Moon, LifeBuoy, CheckCheck, Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
+import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 export type WallNavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } | WallNavItem;
