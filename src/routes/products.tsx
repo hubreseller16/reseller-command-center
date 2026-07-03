@@ -70,7 +70,7 @@ function ProductsWall() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState<Product | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkConfirm, setBulkConfirm] = useState<null | { key: string; label: string }>(null);
 
   const filtered = useMemo(() => {
