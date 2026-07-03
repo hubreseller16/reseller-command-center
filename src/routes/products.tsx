@@ -217,7 +217,14 @@ function ProductsWall() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Product</TableHead>
+                  <TableHead className="w-10 pl-5">
+                    <Checkbox
+                      checked={allChecked}
+                      onCheckedChange={(v) => toggleAll(!!v)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Price</TableHead>
@@ -228,8 +235,11 @@ function ProductsWall() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                    <TableCell className="pl-5">
+                  <TableRow key={r.id} data-state={selectedIds.has(r.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
+                    <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary"><Package className="h-4 w-4" /></div>
                         <div className="min-w-0">
@@ -253,6 +263,36 @@ function ProductsWall() {
           )}
         </SectionCard>
       </div>
+
+      <BulkBar
+        count={selectedIds.size}
+        entity="product"
+        onClear={clearSel}
+        onAction={(k) => (k === "delete" ? setBulkConfirm({ key: "delete", label: "delete" }) : runBulk(k))}
+        actions={[
+          { key: "publish", label: "Publish", icon: Play },
+          { key: "draft", label: "Pause (Draft)", icon: Pause },
+          { key: "archive", label: "Archive", icon: Archive },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} product{selectedIds.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the selected products from the catalog. Every deletion is logged to the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runBulk("delete")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <ProductDrawer row={selected} open={!!selected} onOpenChange={(o) => !o && setOpenId(null)} onAction={(a) => selected && onAction(selected, a)} />
 
