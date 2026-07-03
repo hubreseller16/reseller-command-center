@@ -66,8 +66,8 @@ function CustomersWall() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState<Customer | null>(null);
-
-  const filtered = useMemo(() => {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string }>(null);
     const term = q.trim().toLowerCase();
     let r = rows.filter((x) => {
       if (status !== "all" && x.status !== status) return false;
