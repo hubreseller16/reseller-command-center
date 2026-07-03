@@ -205,14 +205,39 @@ function GlobalSearch() {
   const [active, setActive] = useState(0);
   const navigate = useNavigate();
   const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
-  const items = useMemo(() => flattenNav(), []);
-  const results = useMemo(() => {
+  const navItems = useMemo(() => flattenNav(), []);
+  const records = useSearchEntries();
+
+  type Row =
+    | { kind: "nav"; item: FlatNav }
+    | { kind: "record"; item: SearchEntry };
+
+  const results = useMemo<Row[]>(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return items;
-    return items.filter((i) =>
-      i.label.toLowerCase().includes(s) || (i.group ?? "").toLowerCase().includes(s) || i.to.toLowerCase().includes(s),
-    );
-  }, [items, q]);
+    const navRows: Row[] = navItems
+      .filter((i) =>
+        !s
+          ? true
+          : i.label.toLowerCase().includes(s)
+            || (i.group ?? "").toLowerCase().includes(s)
+            || i.to.toLowerCase().includes(s),
+      )
+      .map((item) => ({ kind: "nav", item }));
+
+    const recRows: Row[] = records
+      .filter((r) =>
+        !s
+          ? false
+          : r.label.toLowerCase().includes(s)
+            || (r.sub ?? "").toLowerCase().includes(s)
+            || (r.hay ?? "").toLowerCase().includes(s)
+            || r.scope.toLowerCase().includes(s),
+      )
+      .slice(0, 30)
+      .map((item) => ({ kind: "record", item }));
+
+    return [...recRows, ...navRows];
+  }, [navItems, records, q]);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -225,7 +250,18 @@ function GlobalSearch() {
 
   useEffect(() => { setActive(0); }, [q, open]);
 
-  const go = (to: string) => { setOpen(false); setQ(""); navigate({ to }); };
+  const pick = (row: Row) => {
+    setOpen(false);
+    setQ("");
+    if (row.kind === "nav") {
+      navigate({ to: row.item.to });
+    } else {
+      requestOpen(row.item.scope, row.item.id);
+      navigate({ to: row.item.route });
+    }
+  };
+
+  const recordCount = results.filter((r) => r.kind === "record").length;
 
   return (
     <div ref={ref} className="relative">
@@ -237,32 +273,58 @@ function GlobalSearch() {
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
           else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-          else if (e.key === "Enter" && results[active]) { e.preventDefault(); go(results[active].to); }
+          else if (e.key === "Enter" && results[active]) { e.preventDefault(); pick(results[active]); }
         }}
         placeholder="Search Walls, resellers, orders…"
         className="h-9 w-[280px] rounded-md border border-border bg-surface pl-8 pr-12 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
       <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">⌘K</kbd>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
-          <div className="max-h-[360px] overflow-y-auto py-1">
+        <div className="absolute right-0 top-full z-50 mt-1 w-[420px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
+          <div className="max-h-[420px] overflow-y-auto py-1">
             {results.length === 0 ? (
-              <div className="px-3 py-8 text-center text-xs text-muted-foreground">No matches for "{q}"</div>
+              <div className="px-3 py-8 text-center text-xs text-muted-foreground">
+                {q ? `No matches for "${q}"` : "Start typing to search records & walls…"}
+              </div>
             ) : (
-              results.map((r, idx) => {
-                const Icon = r.icon;
+              results.map((row, idx) => {
+                const selected = idx === active;
+                if (row.kind === "nav") {
+                  const Icon = row.item.icon;
+                  return (
+                    <button
+                      key={`nav-${row.item.to}`}
+                      onMouseEnter={() => setActive(idx)}
+                      onClick={() => pick(row)}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
+                        selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 text-muted-foreground" />
+                      <span className="flex-1 font-medium">{row.item.label}</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        {row.item.group ?? "Wall"}
+                      </span>
+                    </button>
+                  );
+                }
                 return (
                   <button
-                    key={r.to}
+                    key={`rec-${row.item.scope}-${row.item.id}`}
                     onMouseEnter={() => setActive(idx)}
-                    onClick={() => go(r.to)}
+                    onClick={() => pick(row)}
                     className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
-                      idx === active ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
+                      selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
                     }`}
                   >
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                    <span className="flex-1 font-medium">{r.label}</span>
-                    {r.group && <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{r.group}</span>}
+                    <Hash className="h-4 w-4 text-primary" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{row.item.label}</span>
+                      {row.item.sub && <span className="block truncate text-[11px] text-muted-foreground">{row.item.sub}</span>}
+                    </span>
+                    <span className="rounded bg-primary-soft px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
+                      {row.item.scope}
+                    </span>
                   </button>
                 );
               })
@@ -270,7 +332,7 @@ function GlobalSearch() {
           </div>
           <div className="flex items-center justify-between border-t border-border bg-surface/60 px-3 py-1.5 text-[10px] text-muted-foreground">
             <span>↑↓ navigate · ↵ open · esc close</span>
-            <span>{results.length} result{results.length === 1 ? "" : "s"}</span>
+            <span>{recordCount > 0 ? `${recordCount} record${recordCount === 1 ? "" : "s"} · ` : ""}{results.length} total</span>
           </div>
         </div>
       )}
