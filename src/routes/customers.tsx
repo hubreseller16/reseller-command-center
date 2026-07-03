@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users, Plus, Search, Filter, MoreHorizontal, XCircle, ArrowDownUp,
-  UserPlus, UserCheck, Building2, Mail, Phone, MapPin, ShoppingCart, DollarSign,
-  Activity, Ban, CheckCircle2, Layers, Star,
+  UserCheck, Building2, Mail, Phone, MapPin, ShoppingCart, DollarSign,
+  Ban, CheckCircle2, Layers, Star, Trash2, Snowflake, Activity,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
 import { Btn, Card, EmptyState, KPI, SectionCard } from "@/components/wall/Empty";
+import { BulkBar } from "@/components/wall/BulkBar";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +28,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { recordAction } from "@/lib/recordAction";
+import { useRegisterSearchScope, consumePendingOpen } from "@/lib/searchIndex";
 
 export const Route = createFileRoute("/customers")({
   head: () => ({ meta: [
@@ -63,6 +66,8 @@ function CustomersWall() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState<Customer | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string }>(null);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -85,6 +90,41 @@ function CustomersWall() {
   }), [rows]);
 
   const selected = rows.find((r) => r.id === openId) ?? null;
+
+  const entries = useMemo(() => rows.map((r) => ({
+    scope: "customers", id: r.id, label: r.name,
+    sub: `${r.company || "Individual"} · ${r.segment} · ₹${r.ltv.toLocaleString()}`,
+    route: "/customers",
+    hay: `${r.email} ${r.company} ${r.region} ${r.reseller}`,
+  })), [rows]);
+  useRegisterSearchScope("customers", entries);
+  useEffect(() => { const p = consumePendingOpen("customers"); if (p) setOpenId(p); }, [rows]);
+
+  const toggleOne = (id: string) => setSelectedIds((prev) => {
+    const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next;
+  });
+  const toggleAll = (checked: boolean) => setSelectedIds(checked ? new Set(filtered.map((r) => r.id)) : new Set());
+  const clearSel = () => setSelectedIds(new Set());
+  const allChecked = filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+
+  const runBulk = (key: string) => {
+    const targets = rows.filter((r) => selectedIds.has(r.id));
+    if (targets.length === 0) return;
+    if (key === "delete") {
+      const ids = new Set(targets.map((r) => r.id));
+      setRows((p) => p.filter((r) => !ids.has(r.id)));
+      targets.forEach((r) => void recordAction({ action: "customer.bulk_delete", entityType: "customer", entityId: r.id, summary: `Bulk removed "${r.name}"`, before: r }));
+      if (openId && ids.has(openId)) setOpenId(null);
+      toast.success(`Removed ${targets.length} customer${targets.length === 1 ? "" : "s"}`);
+    } else {
+      const status: Customer["status"] = key === "activate" ? "active" : key === "freeze" ? "inactive" : "blocked";
+      setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, status, updated_at: new Date().toISOString() } : r)));
+      targets.forEach((r) => void recordAction({ action: `customer.bulk_${key}`, entityType: "customer", entityId: r.id, summary: `Bulk ${key} "${r.name}"`, before: r, after: { ...r, status } }));
+      toast.success(`${cap(key)} ${targets.length} customer${targets.length === 1 ? "" : "s"}`);
+    }
+    clearSel(); setBulkConfirm(null);
+  };
+
 
   const setStatusFor = (row: Customer, next: Customer["status"], action: string) => {
     const updated = { ...row, status: next, updated_at: new Date().toISOString() };
@@ -155,7 +195,10 @@ function CustomersWall() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Customer</TableHead>
+                  <TableHead className="w-10 pl-5">
+                    <Checkbox checked={allChecked} onCheckedChange={(v) => toggleAll(!!v)} aria-label="Select all" />
+                  </TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Segment</TableHead>
                   <TableHead>Reseller</TableHead>
@@ -166,8 +209,11 @@ function CustomersWall() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                    <TableCell className="pl-5">
+                  <TableRow key={r.id} data-state={selectedIds.has(r.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
+                    <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold">
                           {initials(r.name)}
@@ -193,6 +239,36 @@ function CustomersWall() {
           )}
         </SectionCard>
       </div>
+
+      <BulkBar
+        count={selectedIds.size}
+        entity="customer"
+        onClear={clearSel}
+        onAction={(k) => (k === "delete" ? setBulkConfirm({ key: "delete" }) : runBulk(k))}
+        actions={[
+          { key: "activate", label: "Approve/Activate", icon: CheckCircle2 },
+          { key: "freeze", label: "Freeze", icon: Snowflake },
+          { key: "block", label: "Block", icon: Ban },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {selectedIds.size} customer{selectedIds.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the selected customers. Order history is retained. Every removal is logged to the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runBulk("delete")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <CustomerDrawer row={selected} open={!!selected} onOpenChange={(o) => !o && setOpenId(null)} onAction={(a) => selected && onAction(selected, a)} />
 

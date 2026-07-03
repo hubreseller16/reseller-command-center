@@ -1,19 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Package, Plus, Search, Filter, MoreHorizontal, Archive, CheckCircle2, XCircle,
-  ArrowDownUp, TrendingUp, ShoppingCart, Tag, DollarSign, Layers, Copy, Play, Pause,
+  ArrowDownUp, TrendingUp, ShoppingCart, Tag, DollarSign, Layers, Copy, Play, Pause, Trash2,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
 import { Btn, Card, EmptyState, KPI, SectionCard } from "@/components/wall/Empty";
+import { BulkBar } from "@/components/wall/BulkBar";
 import {
   Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +29,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { recordAction } from "@/lib/recordAction";
+import { useRegisterSearchScope, consumePendingOpen } from "@/lib/searchIndex";
 
 export const Route = createFileRoute("/products")({
   head: () => ({ meta: [
@@ -67,6 +70,8 @@ function ProductsWall() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteRow, setDeleteRow] = useState<Product | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string; label: string }>(null);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -90,13 +95,38 @@ function ProductsWall() {
 
   const selected = rows.find((r) => r.id === openId) ?? null;
 
+  // register with global search
+  const entries = useMemo(
+    () => rows.map((r) => ({
+      scope: "products",
+      id: r.id,
+      label: r.name,
+      sub: `${r.sku} · ${r.category} · ₹${r.price.toLocaleString()}`,
+      route: "/products",
+      hay: `${r.sku} ${r.category} ${r.description} ${r.license_type}`,
+    })),
+    [rows],
+  );
+  useRegisterSearchScope("products", entries);
+  useEffect(() => {
+    const pending = consumePendingOpen("products");
+    if (pending) setOpenId(pending);
+  }, [rows]);
+
+  const toggleOne = (id: string) => setSelectedIds((prev) => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleAll = (checked: boolean) => setSelectedIds(checked ? new Set(filtered.map((r) => r.id)) : new Set());
+  const clearSel = () => setSelectedIds(new Set());
+  const allChecked = filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+
   function apply(update: (p: Product) => Product, action: string, summary: string) {
-    setRows((prev) => prev.map((p) => (p.id === (selected?.id ?? p.id) ? p : p)));
     return (row: Product) => {
       const updated = { ...update(row), updated_at: new Date().toISOString() };
       setRows((prev) => prev.map((p) => (p.id === row.id ? updated : p)));
       void recordAction({ action: `product.${action}`, entityType: "product", entityId: row.id, summary, before: row, after: updated });
-      toast.success(summary);
     };
   }
 
@@ -109,9 +139,28 @@ function ProductsWall() {
       void recordAction({ action: "product.duplicate", entityType: "product", entityId: copy.id, summary: `Duplicated "${row.name}"`, after: copy });
       return toast.success("Product duplicated");
     }
-    if (action === "publish") return apply((r) => ({ ...r, status: "active" }), "publish", `Published "${row.name}"`)(row);
-    if (action === "archive") return apply((r) => ({ ...r, status: "archived" }), "archive", `Archived "${row.name}"`)(row);
-    if (action === "draft") return apply((r) => ({ ...r, status: "draft" }), "draft", `Moved "${row.name}" to draft`)(row);
+    if (action === "publish") { apply((r) => ({ ...r, status: "active" }), "publish", `Published "${row.name}"`)(row); return toast.success(`Published "${row.name}"`); }
+    if (action === "archive") { apply((r) => ({ ...r, status: "archived" }), "archive", `Archived "${row.name}"`)(row); return toast.success(`Archived "${row.name}"`); }
+    if (action === "draft") { apply((r) => ({ ...r, status: "draft" }), "draft", `Moved "${row.name}" to draft`)(row); return toast.success(`Moved "${row.name}" to draft`); }
+  };
+
+  const runBulk = (key: string) => {
+    const targets = rows.filter((r) => selectedIds.has(r.id));
+    if (targets.length === 0) return;
+    if (key === "delete") {
+      const ids = new Set(targets.map((r) => r.id));
+      setRows((p) => p.filter((r) => !ids.has(r.id)));
+      targets.forEach((r) => void recordAction({ action: "product.bulk_delete", entityType: "product", entityId: r.id, summary: `Bulk deleted "${r.name}"`, before: r }));
+      if (openId && ids.has(openId)) setOpenId(null);
+      toast.success(`Deleted ${targets.length} product${targets.length === 1 ? "" : "s"}`);
+    } else if (key === "publish" || key === "archive" || key === "draft") {
+      const status = key === "publish" ? "active" : key === "archive" ? "archived" : "draft";
+      setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, status: status as Product["status"], updated_at: new Date().toISOString() } : r)));
+      targets.forEach((r) => void recordAction({ action: `product.bulk_${key}`, entityType: "product", entityId: r.id, summary: `Bulk ${key} "${r.name}"`, before: r, after: { ...r, status } }));
+      toast.success(`${cap(key === "publish" ? "published" : key === "archive" ? "archived" : "drafted")} ${targets.length} product${targets.length === 1 ? "" : "s"}`);
+    }
+    clearSel();
+    setBulkConfirm(null);
   };
 
   return (
@@ -168,7 +217,14 @@ function ProductsWall() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Product</TableHead>
+                  <TableHead className="w-10 pl-5">
+                    <Checkbox
+                      checked={allChecked}
+                      onCheckedChange={(v) => toggleAll(!!v)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="text-right">Price</TableHead>
@@ -179,8 +235,11 @@ function ProductsWall() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                    <TableCell className="pl-5">
+                  <TableRow key={r.id} data-state={selectedIds.has(r.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
+                    <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary"><Package className="h-4 w-4" /></div>
                         <div className="min-w-0">
@@ -204,6 +263,36 @@ function ProductsWall() {
           )}
         </SectionCard>
       </div>
+
+      <BulkBar
+        count={selectedIds.size}
+        entity="product"
+        onClear={clearSel}
+        onAction={(k) => (k === "delete" ? setBulkConfirm({ key: "delete", label: "delete" }) : runBulk(k))}
+        actions={[
+          { key: "publish", label: "Publish", icon: Play },
+          { key: "draft", label: "Pause (Draft)", icon: Pause },
+          { key: "archive", label: "Archive", icon: Archive },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} product{selectedIds.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the selected products from the catalog. Every deletion is logged to the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runBulk("delete")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <ProductDrawer row={selected} open={!!selected} onOpenChange={(o) => !o && setOpenId(null)} onAction={(a) => selected && onAction(selected, a)} />
 
