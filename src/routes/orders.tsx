@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   ShoppingCart, Plus, Search, Filter, MoreHorizontal, XCircle, ArrowDownUp,
   CheckCircle2, Clock, Truck, Package, DollarSign, Receipt, Layers, RotateCcw,
-  User, Building2, Mail,
+  User, Building2, Mail, Trash2, Pause,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
 import { Btn, Card, EmptyState, KPI, SectionCard } from "@/components/wall/Empty";
+import { BulkBar } from "@/components/wall/BulkBar";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +28,7 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { recordAction } from "@/lib/recordAction";
+import { useRegisterSearchScope, consumePendingOpen } from "@/lib/searchIndex";
 
 export const Route = createFileRoute("/orders")({
   head: () => ({ meta: [
