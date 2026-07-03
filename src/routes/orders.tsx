@@ -93,6 +93,22 @@ function OrdersWall() {
 
   const selected = rows.find((r) => r.id === openId) ?? null;
 
+  const entries = useMemo(() => rows.map((r) => ({
+    scope: "orders", id: r.id, label: r.number,
+    sub: `${r.customer} · ${r.product} · ${r.currency} ${r.amount.toLocaleString()}`,
+    route: "/orders",
+    hay: `${r.reseller} ${r.customer_email} ${r.status} ${r.payment}`,
+  })), [rows]);
+  useRegisterSearchScope("orders", entries);
+  useEffect(() => { const p = consumePendingOpen("orders"); if (p) setOpenId(p); }, [rows]);
+
+  const toggleOne = (id: string) => setSelectedIds((prev) => {
+    const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next;
+  });
+  const toggleAll = (checked: boolean) => setSelectedIds(checked ? new Set(filtered.map((r) => r.id)) : new Set());
+  const clearSel = () => setSelectedIds(new Set());
+  const allChecked = filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+
   const setStatusFor = (row: Order, patch: Partial<Order>, action: string, summary: string) => {
     const updated = { ...row, ...patch, updated_at: new Date().toISOString() };
     setRows((p) => p.map((r) => (r.id === row.id ? updated : r)));
@@ -109,6 +125,31 @@ function OrdersWall() {
     if (action === "mark_paid") return setStatusFor(row, { payment: "paid" }, "paid", `Marked ${row.number} paid`);
     if (action === "refund") return setStatusFor(row, { payment: "refunded" }, "refund", `Refunded ${row.number}`);
   };
+
+  const runBulk = (key: string) => {
+    const targets = rows.filter((r) => selectedIds.has(r.id));
+    if (targets.length === 0) return;
+    const now = new Date().toISOString();
+    if (key === "delete") {
+      const ids = new Set(targets.map((r) => r.id));
+      setRows((p) => p.filter((r) => !ids.has(r.id)));
+      targets.forEach((r) => void recordAction({ action: "order.bulk_delete", entityType: "order", entityId: r.id, summary: `Bulk deleted ${r.number}`, before: r }));
+      if (openId && ids.has(openId)) setOpenId(null);
+      toast.success(`Deleted ${targets.length} order${targets.length === 1 ? "" : "s"}`);
+    } else {
+      const patch: Partial<Order> =
+        key === "approve" ? { status: "processing" } :
+        key === "fulfill" ? { status: "fulfilled" } :
+        key === "pause" ? { status: "pending" } :
+        key === "cancel" ? { status: "cancelled" } :
+        key === "mark_paid" ? { payment: "paid" } : {};
+      setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, ...patch, updated_at: now } : r)));
+      targets.forEach((r) => void recordAction({ action: `order.bulk_${key}`, entityType: "order", entityId: r.id, summary: `Bulk ${key} ${r.number}`, before: r, after: { ...r, ...patch } }));
+      toast.success(`${cap(key)} ${targets.length} order${targets.length === 1 ? "" : "s"}`);
+    }
+    clearSel(); setBulkConfirm(null);
+  };
+
 
   return (
     <>
