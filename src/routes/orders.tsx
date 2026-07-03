@@ -205,7 +205,10 @@ function OrdersWall() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Order</TableHead>
+                  <TableHead className="w-10 pl-5">
+                    <Checkbox checked={allChecked} onCheckedChange={(v) => toggleAll(!!v)} aria-label="Select all" />
+                  </TableHead>
+                  <TableHead>Order</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
@@ -217,8 +220,11 @@ function OrdersWall() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                    <TableCell className="pl-5">
+                  <TableRow key={r.id} data-state={selectedIds.has(r.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
+                    <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label={`Select ${r.number}`} />
+                    </TableCell>
+                    <TableCell>
                       <div className="min-w-0">
                         <div className="font-mono text-[12px] font-semibold">{r.number}</div>
                         <div className="text-[11px] text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</div>
@@ -245,6 +251,38 @@ function OrdersWall() {
           )}
         </SectionCard>
       </div>
+
+      <BulkBar
+        count={selectedIds.size}
+        entity="order"
+        onClear={clearSel}
+        onAction={(k) => (k === "delete" ? setBulkConfirm({ key: "delete" }) : runBulk(k))}
+        actions={[
+          { key: "approve", label: "Approve/Process", icon: CheckCircle2 },
+          { key: "fulfill", label: "Fulfill", icon: Truck },
+          { key: "mark_paid", label: "Mark Paid", icon: DollarSign },
+          { key: "pause", label: "Pause", icon: Pause },
+          { key: "cancel", label: "Cancel", icon: XCircle },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.size} order{selectedIds.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes the selected orders. Every deletion is logged to the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runBulk("delete")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <OrderDrawer row={selected} open={!!selected} onOpenChange={(o) => !o && setOpenId(null)} onAction={(a) => selected && onAction(selected, a)} />
 
