@@ -91,6 +91,41 @@ function CustomersWall() {
 
   const selected = rows.find((r) => r.id === openId) ?? null;
 
+  const entries = useMemo(() => rows.map((r) => ({
+    scope: "customers", id: r.id, label: r.name,
+    sub: `${r.company || "Individual"} · ${r.segment} · ₹${r.ltv.toLocaleString()}`,
+    route: "/customers",
+    hay: `${r.email} ${r.company} ${r.region} ${r.reseller}`,
+  })), [rows]);
+  useRegisterSearchScope("customers", entries);
+  useEffect(() => { const p = consumePendingOpen("customers"); if (p) setOpenId(p); }, [rows]);
+
+  const toggleOne = (id: string) => setSelectedIds((prev) => {
+    const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next;
+  });
+  const toggleAll = (checked: boolean) => setSelectedIds(checked ? new Set(filtered.map((r) => r.id)) : new Set());
+  const clearSel = () => setSelectedIds(new Set());
+  const allChecked = filtered.length > 0 && filtered.every((r) => selectedIds.has(r.id));
+
+  const runBulk = (key: string) => {
+    const targets = rows.filter((r) => selectedIds.has(r.id));
+    if (targets.length === 0) return;
+    if (key === "delete") {
+      const ids = new Set(targets.map((r) => r.id));
+      setRows((p) => p.filter((r) => !ids.has(r.id)));
+      targets.forEach((r) => void recordAction({ action: "customer.bulk_delete", entityType: "customer", entityId: r.id, summary: `Bulk removed "${r.name}"`, before: r }));
+      if (openId && ids.has(openId)) setOpenId(null);
+      toast.success(`Removed ${targets.length} customer${targets.length === 1 ? "" : "s"}`);
+    } else {
+      const status: Customer["status"] = key === "activate" ? "active" : key === "freeze" ? "inactive" : "blocked";
+      setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, status, updated_at: new Date().toISOString() } : r)));
+      targets.forEach((r) => void recordAction({ action: `customer.bulk_${key}`, entityType: "customer", entityId: r.id, summary: `Bulk ${key} "${r.name}"`, before: r, after: { ...r, status } }));
+      toast.success(`${cap(key)} ${targets.length} customer${targets.length === 1 ? "" : "s"}`);
+    }
+    clearSel(); setBulkConfirm(null);
+  };
+
+
   const setStatusFor = (row: Customer, next: Customer["status"], action: string) => {
     const updated = { ...row, status: next, updated_at: new Date().toISOString() };
     setRows((p) => p.map((r) => (r.id === row.id ? updated : r)));
