@@ -195,7 +195,10 @@ function CustomersWall() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="pl-5">Customer</TableHead>
+                  <TableHead className="w-10 pl-5">
+                    <Checkbox checked={allChecked} onCheckedChange={(v) => toggleAll(!!v)} aria-label="Select all" />
+                  </TableHead>
+                  <TableHead>Customer</TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Segment</TableHead>
                   <TableHead>Reseller</TableHead>
@@ -206,8 +209,11 @@ function CustomersWall() {
               </TableHeader>
               <TableBody>
                 {filtered.map((r) => (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                    <TableCell className="pl-5">
+                  <TableRow key={r.id} data-state={selectedIds.has(r.id) ? "selected" : undefined} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
+                    <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedIds.has(r.id)} onCheckedChange={() => toggleOne(r.id)} aria-label={`Select ${r.name}`} />
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold">
                           {initials(r.name)}
@@ -233,6 +239,36 @@ function CustomersWall() {
           )}
         </SectionCard>
       </div>
+
+      <BulkBar
+        count={selectedIds.size}
+        entity="customer"
+        onClear={clearSel}
+        onAction={(k) => (k === "delete" ? setBulkConfirm({ key: "delete" }) : runBulk(k))}
+        actions={[
+          { key: "activate", label: "Approve/Activate", icon: CheckCircle2 },
+          { key: "freeze", label: "Freeze", icon: Snowflake },
+          { key: "block", label: "Block", icon: Ban },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {selectedIds.size} customer{selectedIds.size === 1 ? "" : "s"}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes the selected customers. Order history is retained. Every removal is logged to the audit trail.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => runBulk("delete")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <CustomerDrawer row={selected} open={!!selected} onOpenChange={(o) => !o && setOpenId(null)} onAction={(a) => selected && onAction(selected, a)} />
 
