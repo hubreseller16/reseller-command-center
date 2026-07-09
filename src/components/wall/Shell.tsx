@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
   Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
-  Sun, Moon, LifeBuoy, CheckCheck, Hash,
+  Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
