@@ -264,79 +264,89 @@ function GlobalSearch() {
   const recordCount = results.filter((r) => r.kind === "record").length;
 
   return (
-    <div ref={ref} className="relative">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-      <input
-        value={q}
-        onChange={(e) => { setQ(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
-          else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
-          else if (e.key === "Enter" && results[active]) { e.preventDefault(); pick(results[active]); }
-        }}
-        placeholder="Search Walls, resellers, orders…"
-        className="h-9 w-[280px] rounded-md border border-border bg-surface pl-8 pr-12 text-[13px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-      />
-      <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">⌘K</kbd>
+    <>
+      <button
+        type="button"
+        aria-label="Search"
+        onClick={() => setOpen(true)}
+        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-surface px-2.5 text-[12px] text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      >
+        <Search className="h-3.5 w-3.5" />
+        <span className="hidden lg:inline">Search…</span>
+        <kbd className="ml-1 hidden rounded border border-border bg-background px-1 py-0.5 text-[9px] font-medium lg:inline">⌘K</kbd>
+      </button>
+
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[420px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
-          <div className="max-h-[420px] overflow-y-auto py-1">
-            {results.length === 0 ? (
-              <div className="px-3 py-8 text-center text-xs text-muted-foreground">
-                {q ? `No matches for "${q}"` : "Start typing to search records & walls…"}
-              </div>
-            ) : (
-              results.map((row, idx) => {
-                const selected = idx === active;
-                if (row.kind === "nav") {
-                  const Icon = row.item.icon;
+        <div className="fixed inset-0 z-[100] flex items-start justify-center bg-background/60 p-4 pt-24 backdrop-blur-sm" onClick={() => setOpen(false)}>
+          <div
+            ref={ref}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[560px] overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl"
+          >
+            <div className="relative border-b border-border">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => Math.min(a + 1, results.length - 1)); }
+                  else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => Math.max(a - 1, 0)); }
+                  else if (e.key === "Enter" && results[active]) { e.preventDefault(); pick(results[active]); }
+                }}
+                placeholder="Search Walls, resellers, orders, customers…"
+                className="h-12 w-full bg-transparent pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none"
+              />
+            </div>
+            <div className="max-h-[420px] overflow-y-auto py-1">
+              {results.length === 0 ? (
+                <div className="px-3 py-10 text-center text-xs text-muted-foreground">
+                  {q ? `No matches for "${q}"` : "Start typing to search records & walls…"}
+                </div>
+              ) : (
+                results.map((row, idx) => {
+                  const selected = idx === active;
+                  if (row.kind === "nav") {
+                    const Icon = row.item.icon;
+                    return (
+                      <button
+                        key={`nav-${row.item.to}`}
+                        onMouseEnter={() => setActive(idx)}
+                        onClick={() => pick(row)}
+                        className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"}`}
+                      >
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                        <span className="flex-1 font-medium">{row.item.label}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{row.item.group ?? "Wall"}</span>
+                      </button>
+                    );
+                  }
                   return (
                     <button
-                      key={`nav-${row.item.to}`}
+                      key={`rec-${row.item.scope}-${row.item.id}`}
                       onMouseEnter={() => setActive(idx)}
                       onClick={() => pick(row)}
-                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
-                        selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
-                      }`}
+                      className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"}`}
                     >
-                      <Icon className="h-4 w-4 text-muted-foreground" />
-                      <span className="flex-1 font-medium">{row.item.label}</span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        {row.item.group ?? "Wall"}
+                      <Hash className="h-4 w-4 text-primary" />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-medium">{row.item.label}</span>
+                        {row.item.sub && <span className="block truncate text-[11px] text-muted-foreground">{row.item.sub}</span>}
                       </span>
+                      <span className="rounded bg-primary-soft px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">{row.item.scope}</span>
                     </button>
                   );
-                }
-                return (
-                  <button
-                    key={`rec-${row.item.scope}-${row.item.id}`}
-                    onMouseEnter={() => setActive(idx)}
-                    onClick={() => pick(row)}
-                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm ${
-                      selected ? "bg-accent text-accent-foreground" : "hover:bg-accent hover:text-accent-foreground"
-                    }`}
-                  >
-                    <Hash className="h-4 w-4 text-primary" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-medium">{row.item.label}</span>
-                      {row.item.sub && <span className="block truncate text-[11px] text-muted-foreground">{row.item.sub}</span>}
-                    </span>
-                    <span className="rounded bg-primary-soft px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary">
-                      {row.item.scope}
-                    </span>
-                  </button>
-                );
-              })
-            )}
-          </div>
-          <div className="flex items-center justify-between border-t border-border bg-surface/60 px-3 py-1.5 text-[10px] text-muted-foreground">
-            <span>↑↓ navigate · ↵ open · esc close</span>
-            <span>{recordCount > 0 ? `${recordCount} record${recordCount === 1 ? "" : "s"} · ` : ""}{results.length} total</span>
+                })
+              )}
+            </div>
+            <div className="flex items-center justify-between border-t border-border bg-surface/60 px-3 py-1.5 text-[10px] text-muted-foreground">
+              <span>↑↓ navigate · ↵ open · esc close</span>
+              <span>{recordCount > 0 ? `${recordCount} record${recordCount === 1 ? "" : "s"} · ` : ""}{results.length} total</span>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
