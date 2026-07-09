@@ -106,9 +106,19 @@ function NavDropdown({ group }: { group: { label: string; icon: React.ComponentT
 }
 
 export function TopBar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
+        <button
+          type="button"
+          aria-label="Open menu"
+          onClick={() => setMobileOpen(true)}
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent md:hidden"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+
         <Link to="/" className="mr-2 flex shrink-0 items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <Crown className="h-4 w-4" />
@@ -119,7 +129,7 @@ export function TopBar() {
           </div>
         </Link>
 
-        <nav className="ml-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
+        <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex">
           {NAV.map((n) =>
             isGroup(n) ? (
               <NavDropdown key={n.label} group={n} />
@@ -139,13 +149,107 @@ export function TopBar() {
           )}
         </nav>
 
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5 md:ml-0">
           <GlobalSearch />
           <NotificationsMenu />
           <AvatarMenu />
         </div>
       </div>
+
+      <MobileNavDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} />
     </header>
+  );
+}
+
+function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose]);
+
+  if (!open) return null;
+
+  const isActive = (to: string) => pathname === to || (to !== "/" && pathname.startsWith(to + "/"));
+
+  return (
+    <div className="fixed inset-0 z-[90] md:hidden" onClick={onClose}>
+      <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
+      <aside
+        onClick={(e) => e.stopPropagation()}
+        className="absolute left-0 top-0 flex h-full w-[85%] max-w-[320px] flex-col border-r border-border bg-popover text-popover-foreground shadow-2xl"
+      >
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
+              <Crown className="h-4 w-4" />
+            </span>
+            <div>
+              <div className="text-[13px] font-bold leading-tight">Software Vala</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reseller Manager</div>
+            </div>
+          </div>
+          <button
+            aria-label="Close menu"
+            onClick={onClose}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-accent"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2">
+          {NAV.map((n) => {
+            if (!isGroup(n)) {
+              const Icon = n.icon;
+              return (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  onClick={onClose}
+                  className={`flex items-center gap-2.5 rounded-md px-3 py-2.5 text-sm font-semibold ${
+                    isActive(n.to) ? "bg-primary-soft text-primary" : "hover:bg-accent"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {n.label}
+                </Link>
+              );
+            }
+            const GroupIcon = n.icon;
+            return (
+              <div key={n.label} className="mt-3 first:mt-0">
+                <div className="flex items-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <GroupIcon className="h-3 w-3" />
+                  {n.label}
+                </div>
+                {n.items.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={onClose}
+                      className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium ${
+                        isActive(item.to) ? "bg-primary-soft text-primary" : "hover:bg-accent"
+                      }`}
+                    >
+                      <ItemIcon className="h-4 w-4 text-muted-foreground" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </aside>
+    </div>
   );
 }
 
