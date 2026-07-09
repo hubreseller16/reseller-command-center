@@ -73,7 +73,7 @@ function NavDropdown({ group }: { group: { label: string; icon: React.ComponentT
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={`inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-[13px] font-semibold transition-colors ${
+        className={`inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-semibold transition-colors ${
           active ? "bg-primary-soft text-primary" : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
         }`}
       >
@@ -128,7 +128,7 @@ export function TopBar() {
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
                 activeProps={{ className: "bg-primary-soft text-primary" }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md px-3 text-[13px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <n.icon className="h-4 w-4" />
                 {n.label}
