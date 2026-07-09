@@ -112,13 +112,13 @@ export function TopBar() {
           <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
             <Crown className="h-4 w-4" />
           </span>
-          <div className="hidden sm:block">
+          <div className="hidden xl:block">
             <div className="text-[13px] font-bold leading-tight">Software Vala</div>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reseller Manager</div>
           </div>
         </Link>
 
-        <nav className="ml-2 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
+        <nav className="ml-1 flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
           {NAV.map((n) =>
             isGroup(n) ? (
               <NavDropdown key={n.label} group={n} />
@@ -128,10 +128,11 @@ export function TopBar() {
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
                 activeProps={{ className: "bg-primary-soft text-primary" }}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+                title={n.label}
+                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
               >
-                <n.icon className="h-4 w-4" />
-                {n.label}
+                <n.icon className="h-4 w-4 shrink-0" />
+                <span className="hidden lg:inline">{n.label}</span>
               </Link>
             ),
           )}
