@@ -73,12 +73,13 @@ function NavDropdown({ group }: { group: { label: string; icon: React.ComponentT
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className={`inline-flex h-9 items-center gap-1.5 rounded-md px-2.5 text-[12.5px] font-semibold transition-colors ${
+        title={group.label}
+        className={`inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-semibold transition-colors ${
           active ? "bg-primary-soft text-primary" : "text-foreground/80 hover:bg-accent hover:text-accent-foreground"
         }`}
       >
-        <Icon className="h-4 w-4" />
-        {group.label}
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="hidden lg:inline">{group.label}</span>
         <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
