@@ -448,7 +448,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
         config={config}
         onCreate={(data) => {
           const now = new Date().toISOString();
-          const row = { ...data, id: crypto.randomUUID(), created_at: now, updated_at: now };
+          const row: Record<string, any> = { ...data, id: crypto.randomUUID(), created_at: now, updated_at: now };
           setRows((p) => [row, ...p]);
           void recordAction({
             action: `${config.entity}.create`, entityType: config.entity, entityId: row.id,
