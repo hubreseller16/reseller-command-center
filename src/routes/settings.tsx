@@ -46,7 +46,7 @@ function SettingsWall() {
       action: `settings.${section}.update`,
       entityType: "settings", entityId: section,
       summary: `Updated ${section} settings`,
-      after: payload as Record<string, unknown>,
+      after: JSON.parse(JSON.stringify(payload)),
     });
     toast.success(`${section[0].toUpperCase()}${section.slice(1)} settings saved`);
   };
