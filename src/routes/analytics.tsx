@@ -103,7 +103,7 @@ function AnalyticsWall() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-[13px] font-semibold"><DollarSign className="inline h-3 w-3" />{r.revenue.toLocaleString()}</div>
+                      <div className="text-[13px] font-semibold tabular-nums">₹{r.revenue.toLocaleString("en-IN")}</div>
                       <div className={`flex items-center justify-end gap-0.5 text-[11px] font-medium ${r.change >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                         {r.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                         {Math.abs(r.change).toFixed(1)}%
