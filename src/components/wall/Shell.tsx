@@ -183,7 +183,7 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
       <aside
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-0 top-0 flex h-full w-[85%] max-w-[320px] flex-col border-r border-border bg-popover text-popover-foreground shadow-2xl"
+        className="absolute inset-y-0 left-0 flex w-[85%] max-w-[320px] flex-col border-r border-border bg-popover text-popover-foreground shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
