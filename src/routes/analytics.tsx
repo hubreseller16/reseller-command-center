@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  BarChart3, TrendingUp, Users, Globe2, DollarSign, ShoppingCart,
-  ArrowUpRight, ArrowDownRight,
+  TrendingUp, Users, Globe2, ShoppingCart,
+  ArrowUpRight, ArrowDownRight, RefreshCcw, Download,
 } from "lucide-react";
+import { toast } from "sonner";
 import { WallHeader } from "@/components/wall/Shell";
-import { Card, KPI, SectionCard } from "@/components/wall/Empty";
+import { Btn, Card, KPI, SectionCard } from "@/components/wall/Empty";
 
 export const Route = createFileRoute("/analytics")({
   head: () => ({ meta: [
@@ -36,6 +37,12 @@ function AnalyticsWall() {
       <WallHeader
         eyebrow="Insights" title="Analytics Wall"
         subtitle="Cohorts, funnels, geo-distribution and tier movement across the entire network."
+        actions={
+          <>
+            <Btn variant="outline" leading={<RefreshCcw className="h-3.5 w-3.5" />} onClick={() => toast.success("Analytics refreshed")}>Refresh</Btn>
+            <Btn leading={<Download className="h-3.5 w-3.5" />} onClick={() => toast.success("Export queued")}>Export</Btn>
+          </>
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -96,7 +103,7 @@ function AnalyticsWall() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="text-[13px] font-semibold"><DollarSign className="inline h-3 w-3" />{r.revenue.toLocaleString()}</div>
+                      <div className="text-[13px] font-semibold tabular-nums">₹{r.revenue.toLocaleString("en-IN")}</div>
                       <div className={`flex items-center justify-end gap-0.5 text-[11px] font-medium ${r.change >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                         {r.change >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                         {Math.abs(r.change).toFixed(1)}%

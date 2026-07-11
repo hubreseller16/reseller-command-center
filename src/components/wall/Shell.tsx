@@ -108,56 +108,62 @@ function NavDropdown({ group }: { group: { label: string; icon: React.ComponentT
 export function TopBar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
-        <button
-          type="button"
-          aria-label="Open menu"
-          onClick={() => setMobileOpen(true)}
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent md:hidden"
-        >
-          <Menu className="h-4 w-4" />
-        </button>
+    <>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={() => setMobileOpen(true)}
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent md:hidden"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
 
-        <Link to="/" className="mr-2 flex shrink-0 items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
-            <Crown className="h-4 w-4" />
-          </span>
-          <div className="hidden xl:block">
-            <div className="text-[13px] font-bold leading-tight">Software Vala</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reseller Manager</div>
+          <Link to="/" className="mr-2 flex shrink-0 items-center gap-2">
+            <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
+              <Crown className="h-4 w-4" />
+            </span>
+            <div className="hidden xl:block">
+              <div className="text-[13px] font-bold leading-tight">Software Vala</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reseller Manager</div>
+            </div>
+          </Link>
+
+          <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex">
+            {NAV.map((n) =>
+              isGroup(n) ? (
+                <NavDropdown key={n.label} group={n} />
+              ) : (
+                <Link
+                  key={n.to}
+                  to={n.to}
+                  activeOptions={{ exact: n.to === "/" }}
+                  activeProps={{ className: "bg-primary-soft text-primary" }}
+                  title={n.label}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <n.icon className="h-4 w-4 shrink-0" />
+                  <span className="hidden lg:inline">{n.label}</span>
+                </Link>
+              ),
+            )}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-1.5 md:ml-0">
+            <GlobalSearch />
+            <NotificationsMenu />
+            <AvatarMenu />
           </div>
-        </Link>
-
-        <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex">
-          {NAV.map((n) =>
-            isGroup(n) ? (
-              <NavDropdown key={n.label} group={n} />
-            ) : (
-              <Link
-                key={n.to}
-                to={n.to}
-                activeOptions={{ exact: n.to === "/" }}
-                activeProps={{ className: "bg-primary-soft text-primary" }}
-                title={n.label}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-semibold text-foreground/80 transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <n.icon className="h-4 w-4 shrink-0" />
-                <span className="hidden lg:inline">{n.label}</span>
-              </Link>
-            ),
-          )}
-        </nav>
-
-        <div className="ml-auto flex items-center gap-1.5 md:ml-0">
-          <GlobalSearch />
-          <NotificationsMenu />
-          <AvatarMenu />
         </div>
-      </div>
+      </header>
 
+      {/* Rendered as a sibling of <header> — the header uses backdrop-filter,
+          which creates a containing block for descendants and would trap the
+          drawer inside the 56px bar. Mounting outside keeps `fixed inset-0`
+          anchored to the viewport. */}
       <MobileNavDrawer open={mobileOpen} onClose={() => setMobileOpen(false)} />
-    </header>
+    </>
   );
 }
 
@@ -183,7 +189,7 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
       <aside
         onClick={(e) => e.stopPropagation()}
-        className="absolute left-0 top-0 flex h-full w-[85%] max-w-[320px] flex-col border-r border-border bg-popover text-popover-foreground shadow-2xl"
+        className="absolute inset-y-0 left-0 flex w-[85%] max-w-[320px] flex-col border-r border-border bg-popover text-popover-foreground shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
