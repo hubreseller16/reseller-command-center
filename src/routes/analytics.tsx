@@ -37,6 +37,12 @@ function AnalyticsWall() {
       <WallHeader
         eyebrow="Insights" title="Analytics Wall"
         subtitle="Cohorts, funnels, geo-distribution and tier movement across the entire network."
+        actions={
+          <>
+            <Btn variant="outline" leading={<RefreshCcw className="h-3.5 w-3.5" />} onClick={() => toast.success("Analytics refreshed")}>Refresh</Btn>
+            <Btn leading={<Download className="h-3.5 w-3.5" />} onClick={() => toast.success("Export queued")}>Export</Btn>
+          </>
+        }
       />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
