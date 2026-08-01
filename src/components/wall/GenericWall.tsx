@@ -343,10 +343,11 @@ export function GenericWall({ config }: { config: WallConfig }) {
     return f ? [...f.options] : [];
   }, [config.filters]);
 
-  const bulkActions = useMemo(
+  const bulkActions = useMemo<WallBulkAction[]>(
     () => [...config.bulkActions, { key: "export", label: "Export", icon: Download }],
     [config.bulkActions],
   );
+
 
   return (
     <TooltipProvider delayDuration={200}>
