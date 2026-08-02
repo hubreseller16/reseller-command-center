@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ShieldCheck, ShieldAlert, BadgeCheck, FileSearch, CheckCircle2, XCircle, Eye, Trash2 } from "lucide-react";
 import { GenericWall, StatusPill, type WallConfig } from "@/components/wall/GenericWall";
+import { KycDocuments } from "@/components/wall/KycDocuments";
+
 
 export const Route = createFileRoute("/kyc")({
   head: () => ({ meta: [
