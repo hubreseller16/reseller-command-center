@@ -101,6 +101,47 @@ function ResellersWall() {
     return r;
   }, [rows, q, status, tier, kyc, sort]);
 
+  // density + paging
+  const [density, setDensity] = useState<Density>("comfortable");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const pageRows = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize],
+  );
+  useEffect(() => { setPage(1); }, [q, status, tier, kyc, sort, pageSize]);
+
+  // selection
+  const [sel, setSel] = useState<string[]>([]);
+  const selectedRows = useMemo(() => filtered.filter((r) => sel.includes(r.id)), [filtered, sel]);
+  const pageIds = pageRows.map((r) => r.id);
+  const allOnPage = pageIds.length > 0 && pageIds.every((id) => sel.includes(id));
+  const someOnPage = pageIds.some((id) => sel.includes(id)) && !allOnPage;
+  const toggleAllOnPage = () =>
+    setSel(allOnPage ? sel.filter((id) => !pageIds.includes(id)) : [...new Set([...sel, ...pageIds])]);
+  const toggleOne = (id: string) =>
+    setSel(sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]);
+
+  // data mobility dialogs
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string; label: string; destructive?: boolean }>(null);
+
+  const filterChips = [
+    status !== "all" ? { key: "status", label: `Status: ${status}` } : null,
+    tier !== "all" ? { key: "tier", label: `Tier: ${tier}` } : null,
+    kyc !== "all" ? { key: "kyc", label: `KYC: ${kyc}` } : null,
+    q.trim() ? { key: "q", label: `Search: ${q.trim()}` } : null,
+  ].filter(Boolean) as { key: string; label: string }[];
+
+  const clearFilter = (key: string) => {
+    if (key === "status") setStatus("all");
+    if (key === "tier") setTier("all");
+    if (key === "kyc") setKyc("all");
+    if (key === "q") setQ("");
+  };
+  const clearAllFilters = () => { setStatus("all"); setTier("all"); setKyc("all"); setQ(""); };
+
   const kpis = useMemo(() => {
     const total = rows.length;
     const active = rows.filter((r) => r.status === "active").length;
@@ -108,6 +149,7 @@ function ResellersWall() {
     const verified = rows.filter((r) => r.kyc_status === "verified").length;
     return { total, active, pending, verified };
   }, [rows]);
+
 
   // drawer state
   const [openId, setOpenId] = useState<string | null>(null);
