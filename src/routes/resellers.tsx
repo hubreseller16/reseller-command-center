@@ -460,7 +460,71 @@ function ResellersWall() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+      {/* Export / Import */}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        name="Resellers"
+        columns={exportColumns}
+        allRows={rows}
+        filteredRows={filtered}
+        selectedRows={selectedRows}
+        onExported={(format, count) => toast.success(`Exported ${count} rows (${format.toUpperCase()})`)}
+      />
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entity="resellers"
+        fields={[
+          { key: "business_name", label: "Business Name", required: true },
+          { key: "code", label: "Code", required: true },
+          { key: "email", label: "Email", required: true },
+          { key: "contact_name", label: "Contact" },
+          { key: "tier", label: "Tier" },
+          { key: "region", label: "Region" },
+        ]}
+        onImport={(imported) => toast.info(`${imported.length} row(s) mapped — enable auth to commit the import.`)}
+      />
+
+      {/* Bulk bar */}
+      <BulkBar
+        count={sel.length}
+        entity="reseller"
+        onClear={() => setSel([])}
+        actions={[
+          { key: "approve", label: "Approve", icon: CheckCircle2 },
+          { key: "verify", label: "Verify KYC", icon: VerifyIcon },
+          { key: "suspend", label: "Suspend", icon: Pause },
+          { key: "export", label: "Export", icon: Download },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+        onAction={(key) => {
+          if (key === "export") { setExportOpen(true); return; }
+          setBulkConfirm({ key, label: key, destructive: key === "delete" || key === "suspend" });
+        }}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply “{bulkConfirm?.label}” to {sel.length} reseller(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action is recorded in the audit trail for every selected record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bulkConfirm && bulkMutation.mutate(bulkConfirm.key)}
+              className={bulkConfirm?.destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </TooltipProvider>
+
   );
 }
 
