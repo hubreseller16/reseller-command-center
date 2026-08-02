@@ -311,14 +311,29 @@ function useOutsideClose<T extends HTMLElement>(onClose: () => void) {
   return ref;
 }
 
+function useLocalList(key: string) {
+  const [list, setList] = useState<string[]>([]);
+  useEffect(() => {
+    try { setList(JSON.parse(window.localStorage.getItem(key) ?? "[]")); } catch { /* ignore */ }
+  }, [key]);
+  const write = (next: string[]) => {
+    setList(next);
+    try { window.localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
+  };
+  return [list, write] as const;
+}
+
 function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+  const [recent, setRecent] = useLocalList("wall:search:recent");
+  const [saved, setSaved] = useLocalList("wall:search:saved");
   const navigate = useNavigate();
   const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
   const navItems = useMemo(() => flattenNav(), []);
   const records = useSearchEntries();
+
 
   type Row =
     | { kind: "nav"; item: FlatNav }
@@ -363,6 +378,8 @@ function GlobalSearch() {
   useEffect(() => { setActive(0); }, [q, open]);
 
   const pick = (row: Row) => {
+    const term = q.trim();
+    if (term) setRecent([term, ...recent.filter((r) => r !== term)].slice(0, 6));
     setOpen(false);
     setQ("");
     if (row.kind === "nav") {
@@ -372,6 +389,14 @@ function GlobalSearch() {
       navigate({ to: row.item.route });
     }
   };
+
+  const isSaved = saved.includes(q.trim());
+  const toggleSaved = () => {
+    const term = q.trim();
+    if (!term) return;
+    setSaved(isSaved ? saved.filter((s) => s !== term) : [term, ...saved].slice(0, 8));
+  };
+
 
   const recordCount = results.filter((r) => r.kind === "record").length;
 
@@ -407,10 +432,31 @@ function GlobalSearch() {
                   else if (e.key === "Enter" && results[active]) { e.preventDefault(); pick(results[active]); }
                 }}
                 placeholder="Search Walls, resellers, orders, customers…"
-                className="h-12 w-full bg-transparent pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none"
+                className="h-12 w-full bg-transparent pl-10 pr-24 text-sm placeholder:text-muted-foreground focus:outline-none"
               />
+              {q.trim() && (
+                <button
+                  type="button"
+                  onClick={toggleSaved}
+                  aria-pressed={isSaved}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-border px-2 py-1 text-[10px] font-semibold transition-colors ${isSaved ? "bg-primary-soft text-primary" : "text-muted-foreground hover:bg-accent"}`}
+                >
+                  {isSaved ? "Saved" : "Save search"}
+                </button>
+              )}
             </div>
+            {!q.trim() && (saved.length > 0 || recent.length > 0) && (
+              <div className="space-y-2 border-b border-border px-3 py-2.5">
+                {saved.length > 0 && (
+                  <SearchChips title="Saved searches" items={saved} onPick={setQ} onRemove={(t) => setSaved(saved.filter((s) => s !== t))} />
+                )}
+                {recent.length > 0 && (
+                  <SearchChips title="Recent" items={recent} onPick={setQ} onRemove={(t) => setRecent(recent.filter((s) => s !== t))} />
+                )}
+              </div>
+            )}
             <div className="max-h-[420px] overflow-y-auto py-1">
+
               {results.length === 0 ? (
                 <div className="px-3 py-10 text-center text-xs text-muted-foreground">
                   {q ? `No matches for "${q}"` : "Start typing to search records & walls…"}
@@ -461,6 +507,35 @@ function GlobalSearch() {
     </>
   );
 }
+
+function SearchChips({
+  title, items, onPick, onRemove,
+}: { title: string; items: string[]; onPick: (t: string) => void; onRemove: (t: string) => void }) {
+  return (
+    <div>
+      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((t) => (
+          <span
+            key={t}
+            className="inline-flex items-center gap-1 rounded-full border border-border bg-surface py-1 pl-2.5 pr-1 text-[11px] font-medium"
+          >
+            <button type="button" onClick={() => onPick(t)} className="max-w-[160px] truncate hover:text-primary">{t}</button>
+            <button
+              type="button"
+              aria-label={`Remove ${t}`}
+              onClick={() => onRemove(t)}
+              className="grid h-4 w-4 place-items-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 /* ============================================================
    Notifications — dropdown with empty state (API-ready)

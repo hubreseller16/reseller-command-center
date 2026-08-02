@@ -1,16 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Users, Plus, Search, Filter, RefreshCcw, MoreHorizontal, ShieldCheck,
   ShieldAlert, Pause, Play, CheckCircle2, XCircle, Mail, Phone, MapPin,
   Wallet, Percent, KeyRound, ShoppingCart, Activity, ScrollText, Bell, ChevronsUpDown,
-  ArrowDownUp, BadgeCheck,
+  ArrowDownUp, BadgeCheck, Download, Upload, Trash2, BadgeCheck as VerifyIcon,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
 import { Btn, Card, EmptyState, KPI, SectionCard } from "@/components/wall/Empty";
+import { BulkBar } from "@/components/wall/BulkBar";
+import {
+  DensitySwitcher, ExportDialog, FilterChips, ImportDialog, Pagination, ToolBtn, type Density,
+} from "@/components/wall/DataTools";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -95,6 +103,47 @@ function ResellersWall() {
     return r;
   }, [rows, q, status, tier, kyc, sort]);
 
+  // density + paging
+  const [density, setDensity] = useState<Density>("comfortable");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const pageRows = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize],
+  );
+  useEffect(() => { setPage(1); }, [q, status, tier, kyc, sort, pageSize]);
+
+  // selection
+  const [sel, setSel] = useState<string[]>([]);
+  const selectedRows = useMemo(() => filtered.filter((r) => sel.includes(r.id)), [filtered, sel]);
+  const pageIds = pageRows.map((r) => r.id);
+  const allOnPage = pageIds.length > 0 && pageIds.every((id) => sel.includes(id));
+  const someOnPage = pageIds.some((id) => sel.includes(id)) && !allOnPage;
+  const toggleAllOnPage = () =>
+    setSel(allOnPage ? sel.filter((id) => !pageIds.includes(id)) : [...new Set([...sel, ...pageIds])]);
+  const toggleOne = (id: string) =>
+    setSel(sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]);
+
+  // data mobility dialogs
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState<null | { key: string; label: string; destructive?: boolean }>(null);
+
+  const filterChips = [
+    status !== "all" ? { key: "status", label: `Status: ${status}` } : null,
+    tier !== "all" ? { key: "tier", label: `Tier: ${tier}` } : null,
+    kyc !== "all" ? { key: "kyc", label: `KYC: ${kyc}` } : null,
+    q.trim() ? { key: "q", label: `Search: ${q.trim()}` } : null,
+  ].filter(Boolean) as { key: string; label: string }[];
+
+  const clearFilter = (key: string) => {
+    if (key === "status") setStatus("all");
+    if (key === "tier") setTier("all");
+    if (key === "kyc") setKyc("all");
+    if (key === "q") setQ("");
+  };
+  const clearAllFilters = () => { setStatus("all"); setTier("all"); setKyc("all"); setQ(""); };
+
   const kpis = useMemo(() => {
     const total = rows.length;
     const active = rows.filter((r) => r.status === "active").length;
@@ -102,6 +151,7 @@ function ResellersWall() {
     const verified = rows.filter((r) => r.kyc_status === "verified").length;
     return { total, active, pending, verified };
   }, [rows]);
+
 
   // drawer state
   const [openId, setOpenId] = useState<string | null>(null);
@@ -186,8 +236,55 @@ function ResellersWall() {
     onError: (e: Error) => toast.error(e.message || "Delete failed (auth/RLS may be off)"),
   });
 
+  // bulk actions
+  const bulkMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const ids = selectedRows.map((r) => r.id);
+      if (ids.length === 0) return;
+      if (key === "delete") {
+        const { error } = await supabase.from("resellers").delete().in("id", ids);
+        if (error) throw error;
+      } else {
+        const patch =
+          key === "approve" ? { status: "active" }
+          : key === "suspend" ? { status: "suspended" }
+          : { kyc_status: "verified" };
+        const { error } = await supabase.from("resellers").update(patch).in("id", ids);
+        if (error) throw error;
+      }
+      await Promise.all(selectedRows.map((r) => recordAction({
+        action: `reseller.bulk_${key}`,
+        entityType: "reseller",
+        entityId: r.id,
+        summary: `Bulk ${key} on "${r.business_name}"`,
+      })));
+    },
+    onSuccess: (_d, key) => {
+      qc.invalidateQueries({ queryKey: ["resellers"] });
+      toast.success(`${selectedRows.length} reseller(s) — ${key} applied`);
+      setSel([]);
+      setBulkConfirm(null);
+    },
+    onError: (e: Error) => toast.error(e.message || "Bulk action failed (auth/RLS may be off)"),
+  });
+
+  const exportColumns = [
+    { key: "business_name", header: "Business Name" },
+    { key: "code", header: "Code" },
+    { key: "email", header: "Email" },
+    { key: "contact_name", header: "Contact" },
+    { key: "tier", header: "Tier" },
+    { key: "status", header: "Status" },
+    { key: "kyc_status", header: "KYC" },
+    { key: "region", header: "Region" },
+    { key: "created_at", header: "Created" },
+  ];
+
+  const cellPad = density === "compact" ? "py-1.5" : "";
+
   return (
-    <>
+    <TooltipProvider delayDuration={200}>
+
       <WallHeader
         eyebrow="Network"
         title="Resellers Wall"
@@ -235,9 +332,14 @@ function ResellersWall() {
                   <SelectItem value="tier">Tier (high)</SelectItem>
                 </SelectContent>
               </Select>
+              <DensitySwitcher value={density} onChange={setDensity} />
+              <ToolBtn label="Export" onClick={() => setExportOpen(true)}><Download className="h-3.5 w-3.5" /></ToolBtn>
+              <ToolBtn label="Import" onClick={() => setImportOpen(true)}><Upload className="h-3.5 w-3.5" /></ToolBtn>
             </div>
           }
         >
+          <FilterChips chips={filterChips} onRemove={clearFilter} onClearAll={clearAllFilters} />
+
           {isLoading ? (
             <div className="space-y-2 p-4">
               {[1, 2, 3, 4].map((i) => <div key={i} className="h-12 animate-pulse rounded bg-muted/60" />)}
@@ -262,58 +364,105 @@ function ResellersWall() {
             />
           ) : (
             <div className="overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-5">Reseller</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>KYC</TableHead>
-                    <TableHead>Region</TableHead>
-                    <TableHead className="text-right pr-5">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r) => (
-                    <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                      <TableCell className="pl-5">
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold">
-                            {initials(r.business_name)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-[11px]">{r.code}</TableCell>
-                      <TableCell><TierBadge tier={r.tier} /></TableCell>
-                      <TableCell><StatusBadge status={r.status} /></TableCell>
-                      <TableCell><KycBadge status={r.kyc_status} /></TableCell>
-                      <TableCell className="text-[12px] text-muted-foreground">{r.region ?? "—"}</TableCell>
-                      <TableCell className="text-right pr-5" onClick={(e) => e.stopPropagation()}>
-                        <RowMenu
-                          row={r}
-                          onAction={(action) => {
-                            if (action === "approve") statusMutation.mutate({ row: r, status: "active", action: "approve" });
-                            if (action === "suspend") statusMutation.mutate({ row: r, status: "suspended", action: "suspend" });
-                            if (action === "reactivate") statusMutation.mutate({ row: r, status: "active", action: "reactivate" });
-                            if (action === "reject") statusMutation.mutate({ row: r, status: "rejected", action: "reject" });
-                            if (action === "verify") kycMutation.mutate({ row: r, kyc_status: "verified", action: "verify" });
-                            if (action === "kyc_reject") kycMutation.mutate({ row: r, kyc_status: "rejected", action: "reject" });
-                            if (action === "delete") setDeleteRow(r);
-                            if (action === "open") setOpenId(r.id);
-                          }}
+              {/* Mobile cards */}
+              <div className="space-y-2 p-3 md:hidden">
+                {pageRows.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => setOpenId(r.id)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface p-3 text-left transition-colors hover:bg-accent"
+                  >
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary-soft text-[12px] font-bold text-primary">
+                      {initials(r.business_name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{r.code} · {r.email}</div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        <StatusBadge status={r.status} />
+                        <KycBadge status={r.kyc_status} />
+                        <TierBadge tier={r.tier} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10 pl-5">
+                        <Checkbox
+                          checked={allOnPage ? true : someOnPage ? "indeterminate" : false}
+                          onCheckedChange={toggleAllOnPage}
+                          aria-label="Select all on page"
                         />
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Reseller</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Tier</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>KYC</TableHead>
+                      <TableHead>Region</TableHead>
+                      <TableHead className="text-right pr-5">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pageRows.map((r) => (
+                      <TableRow
+                        key={r.id}
+                        data-state={sel.includes(r.id) ? "selected" : undefined}
+                        className="cursor-pointer"
+                        onClick={() => setOpenId(r.id)}
+                      >
+                        <TableCell className={`pl-5 ${cellPad}`} onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={sel.includes(r.id)}
+                            onCheckedChange={() => toggleOne(r.id)}
+                            aria-label={`Select ${r.business_name}`}
+                          />
+                        </TableCell>
+                        <TableCell className={cellPad}>
+                          <div className="flex items-center gap-3">
+                            <div className={`grid ${density === "compact" ? "h-7 w-7" : "h-9 w-9"} place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold`}>
+                              {initials(r.business_name)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
+                              <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className={`font-mono text-[11px] ${cellPad}`}>{r.code}</TableCell>
+                        <TableCell className={cellPad}><TierBadge tier={r.tier} /></TableCell>
+                        <TableCell className={cellPad}><StatusBadge status={r.status} /></TableCell>
+                        <TableCell className={cellPad}><KycBadge status={r.kyc_status} /></TableCell>
+                        <TableCell className={`text-[12px] text-muted-foreground ${cellPad}`}>{r.region ?? "—"}</TableCell>
+                        <TableCell className={`text-right pr-5 ${cellPad}`} onClick={(e) => e.stopPropagation()}>
+                          <RowMenu
+                            row={r}
+                            onAction={(action) => {
+                              if (action === "approve") statusMutation.mutate({ row: r, status: "active", action: "approve" });
+                              if (action === "suspend") statusMutation.mutate({ row: r, status: "suspended", action: "suspend" });
+                              if (action === "reactivate") statusMutation.mutate({ row: r, status: "active", action: "reactivate" });
+                              if (action === "reject") statusMutation.mutate({ row: r, status: "rejected", action: "reject" });
+                              if (action === "verify") kycMutation.mutate({ row: r, kyc_status: "verified", action: "verify" });
+                              if (action === "kyc_reject") kycMutation.mutate({ row: r, kyc_status: "rejected", action: "reject" });
+                              if (action === "delete") setDeleteRow(r);
+                              if (action === "open") setOpenId(r.id);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Pagination page={page} pageSize={pageSize} total={filtered.length} onPage={setPage} onPageSize={setPageSize} />
             </div>
           )}
+
         </SectionCard>
       </div>
 
@@ -365,7 +514,71 @@ function ResellersWall() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+      {/* Export / Import */}
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        name="Resellers"
+        columns={exportColumns}
+        allRows={rows}
+        filteredRows={filtered}
+        selectedRows={selectedRows}
+        onExported={(format, count) => toast.success(`Exported ${count} rows (${format.toUpperCase()})`)}
+      />
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entity="resellers"
+        fields={[
+          { key: "business_name", label: "Business Name", required: true },
+          { key: "code", label: "Code", required: true },
+          { key: "email", label: "Email", required: true },
+          { key: "contact_name", label: "Contact" },
+          { key: "tier", label: "Tier" },
+          { key: "region", label: "Region" },
+        ]}
+        onImport={(imported) => toast.info(`${imported.length} row(s) mapped — enable auth to commit the import.`)}
+      />
+
+      {/* Bulk bar */}
+      <BulkBar
+        count={sel.length}
+        entity="reseller"
+        onClear={() => setSel([])}
+        actions={[
+          { key: "approve", label: "Approve", icon: CheckCircle2 },
+          { key: "verify", label: "Verify KYC", icon: VerifyIcon },
+          { key: "suspend", label: "Suspend", icon: Pause },
+          { key: "export", label: "Export", icon: Download },
+          { key: "delete", label: "Delete", icon: Trash2, variant: "destructive" },
+        ]}
+        onAction={(key) => {
+          if (key === "export") { setExportOpen(true); return; }
+          setBulkConfirm({ key, label: key, destructive: key === "delete" || key === "suspend" });
+        }}
+      />
+
+      <AlertDialog open={!!bulkConfirm} onOpenChange={(o) => !o && setBulkConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply “{bulkConfirm?.label}” to {sel.length} reseller(s)?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action is recorded in the audit trail for every selected record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => bulkConfirm && bulkMutation.mutate(bulkConfirm.key)}
+              className={bulkConfirm?.destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </TooltipProvider>
+
   );
 }
 
