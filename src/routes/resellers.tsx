@@ -234,8 +234,55 @@ function ResellersWall() {
     onError: (e: Error) => toast.error(e.message || "Delete failed (auth/RLS may be off)"),
   });
 
+  // bulk actions
+  const bulkMutation = useMutation({
+    mutationFn: async (key: string) => {
+      const ids = selectedRows.map((r) => r.id);
+      if (ids.length === 0) return;
+      if (key === "delete") {
+        const { error } = await supabase.from("resellers").delete().in("id", ids);
+        if (error) throw error;
+      } else {
+        const patch =
+          key === "approve" ? { status: "active" }
+          : key === "suspend" ? { status: "suspended" }
+          : { kyc_status: "verified" };
+        const { error } = await supabase.from("resellers").update(patch).in("id", ids);
+        if (error) throw error;
+      }
+      await Promise.all(selectedRows.map((r) => recordAction({
+        action: `reseller.bulk_${key}`,
+        entityType: "reseller",
+        entityId: r.id,
+        summary: `Bulk ${key} on "${r.business_name}"`,
+      })));
+    },
+    onSuccess: (_d, key) => {
+      qc.invalidateQueries({ queryKey: ["resellers"] });
+      toast.success(`${selectedRows.length} reseller(s) — ${key} applied`);
+      setSel([]);
+      setBulkConfirm(null);
+    },
+    onError: (e: Error) => toast.error(e.message || "Bulk action failed (auth/RLS may be off)"),
+  });
+
+  const exportColumns = [
+    { key: "business_name", header: "Business Name" },
+    { key: "code", header: "Code" },
+    { key: "email", header: "Email" },
+    { key: "contact_name", header: "Contact" },
+    { key: "tier", header: "Tier" },
+    { key: "status", header: "Status" },
+    { key: "kyc_status", header: "KYC" },
+    { key: "region", header: "Region" },
+    { key: "created_at", header: "Created" },
+  ];
+
+  const cellPad = density === "compact" ? "py-1.5" : "";
+
   return (
-    <>
+    <TooltipProvider delayDuration={200}>
+
       <WallHeader
         eyebrow="Network"
         title="Resellers Wall"
