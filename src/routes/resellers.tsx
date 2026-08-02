@@ -364,58 +364,105 @@ function ResellersWall() {
             />
           ) : (
             <div className="overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-5">Reseller</TableHead>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Tier</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>KYC</TableHead>
-                    <TableHead>Region</TableHead>
-                    <TableHead className="text-right pr-5">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r) => (
-                    <TableRow key={r.id} className="cursor-pointer" onClick={() => setOpenId(r.id)}>
-                      <TableCell className="pl-5">
-                        <div className="flex items-center gap-3">
-                          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold">
-                            {initials(r.business_name)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
-                            <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-[11px]">{r.code}</TableCell>
-                      <TableCell><TierBadge tier={r.tier} /></TableCell>
-                      <TableCell><StatusBadge status={r.status} /></TableCell>
-                      <TableCell><KycBadge status={r.kyc_status} /></TableCell>
-                      <TableCell className="text-[12px] text-muted-foreground">{r.region ?? "—"}</TableCell>
-                      <TableCell className="text-right pr-5" onClick={(e) => e.stopPropagation()}>
-                        <RowMenu
-                          row={r}
-                          onAction={(action) => {
-                            if (action === "approve") statusMutation.mutate({ row: r, status: "active", action: "approve" });
-                            if (action === "suspend") statusMutation.mutate({ row: r, status: "suspended", action: "suspend" });
-                            if (action === "reactivate") statusMutation.mutate({ row: r, status: "active", action: "reactivate" });
-                            if (action === "reject") statusMutation.mutate({ row: r, status: "rejected", action: "reject" });
-                            if (action === "verify") kycMutation.mutate({ row: r, kyc_status: "verified", action: "verify" });
-                            if (action === "kyc_reject") kycMutation.mutate({ row: r, kyc_status: "rejected", action: "reject" });
-                            if (action === "delete") setDeleteRow(r);
-                            if (action === "open") setOpenId(r.id);
-                          }}
+              {/* Mobile cards */}
+              <div className="space-y-2 p-3 md:hidden">
+                {pageRows.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => setOpenId(r.id)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-surface p-3 text-left transition-colors hover:bg-accent"
+                  >
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary-soft text-[12px] font-bold text-primary">
+                      {initials(r.business_name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{r.code} · {r.email}</div>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        <StatusBadge status={r.status} />
+                        <KycBadge status={r.kyc_status} />
+                        <TierBadge tier={r.tier} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-10 pl-5">
+                        <Checkbox
+                          checked={allOnPage ? true : someOnPage ? "indeterminate" : false}
+                          onCheckedChange={toggleAllOnPage}
+                          aria-label="Select all on page"
                         />
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Reseller</TableHead>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Tier</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>KYC</TableHead>
+                      <TableHead>Region</TableHead>
+                      <TableHead className="text-right pr-5">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pageRows.map((r) => (
+                      <TableRow
+                        key={r.id}
+                        data-state={sel.includes(r.id) ? "selected" : undefined}
+                        className="cursor-pointer"
+                        onClick={() => setOpenId(r.id)}
+                      >
+                        <TableCell className={`pl-5 ${cellPad}`} onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={sel.includes(r.id)}
+                            onCheckedChange={() => toggleOne(r.id)}
+                            aria-label={`Select ${r.business_name}`}
+                          />
+                        </TableCell>
+                        <TableCell className={cellPad}>
+                          <div className="flex items-center gap-3">
+                            <div className={`grid ${density === "compact" ? "h-7 w-7" : "h-9 w-9"} place-items-center rounded-md bg-primary-soft text-primary text-[12px] font-bold`}>
+                              {initials(r.business_name)}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate text-[13px] font-semibold">{r.business_name}</div>
+                              <div className="truncate text-[11px] text-muted-foreground">{r.email}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className={`font-mono text-[11px] ${cellPad}`}>{r.code}</TableCell>
+                        <TableCell className={cellPad}><TierBadge tier={r.tier} /></TableCell>
+                        <TableCell className={cellPad}><StatusBadge status={r.status} /></TableCell>
+                        <TableCell className={cellPad}><KycBadge status={r.kyc_status} /></TableCell>
+                        <TableCell className={`text-[12px] text-muted-foreground ${cellPad}`}>{r.region ?? "—"}</TableCell>
+                        <TableCell className={`text-right pr-5 ${cellPad}`} onClick={(e) => e.stopPropagation()}>
+                          <RowMenu
+                            row={r}
+                            onAction={(action) => {
+                              if (action === "approve") statusMutation.mutate({ row: r, status: "active", action: "approve" });
+                              if (action === "suspend") statusMutation.mutate({ row: r, status: "suspended", action: "suspend" });
+                              if (action === "reactivate") statusMutation.mutate({ row: r, status: "active", action: "reactivate" });
+                              if (action === "reject") statusMutation.mutate({ row: r, status: "rejected", action: "reject" });
+                              if (action === "verify") kycMutation.mutate({ row: r, kyc_status: "verified", action: "verify" });
+                              if (action === "kyc_reject") kycMutation.mutate({ row: r, kyc_status: "rejected", action: "reject" });
+                              if (action === "delete") setDeleteRow(r);
+                              if (action === "open") setOpenId(r.id);
+                            }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Pagination page={page} pageSize={pageSize} total={filtered.length} onPage={setPage} onPageSize={setPageSize} />
             </div>
           )}
+
         </SectionCard>
       </div>
 
