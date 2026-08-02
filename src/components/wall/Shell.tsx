@@ -378,6 +378,8 @@ function GlobalSearch() {
   useEffect(() => { setActive(0); }, [q, open]);
 
   const pick = (row: Row) => {
+    const term = q.trim();
+    if (term) setRecent([term, ...recent.filter((r) => r !== term)].slice(0, 6));
     setOpen(false);
     setQ("");
     if (row.kind === "nav") {
@@ -387,6 +389,14 @@ function GlobalSearch() {
       navigate({ to: row.item.route });
     }
   };
+
+  const isSaved = saved.includes(q.trim());
+  const toggleSaved = () => {
+    const term = q.trim();
+    if (!term) return;
+    setSaved(isSaved ? saved.filter((s) => s !== term) : [term, ...saved].slice(0, 8));
+  };
+
 
   const recordCount = results.filter((r) => r.kind === "record").length;
 
