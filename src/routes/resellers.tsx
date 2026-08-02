@@ -16,6 +16,8 @@ import {
   DensitySwitcher, ExportDialog, FilterChips, ImportDialog, Pagination, ToolBtn, type Density,
 } from "@/components/wall/DataTools";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
