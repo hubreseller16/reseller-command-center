@@ -432,10 +432,31 @@ function GlobalSearch() {
                   else if (e.key === "Enter" && results[active]) { e.preventDefault(); pick(results[active]); }
                 }}
                 placeholder="Search Walls, resellers, orders, customers…"
-                className="h-12 w-full bg-transparent pl-10 pr-4 text-sm placeholder:text-muted-foreground focus:outline-none"
+                className="h-12 w-full bg-transparent pl-10 pr-24 text-sm placeholder:text-muted-foreground focus:outline-none"
               />
+              {q.trim() && (
+                <button
+                  type="button"
+                  onClick={toggleSaved}
+                  aria-pressed={isSaved}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-md border border-border px-2 py-1 text-[10px] font-semibold transition-colors ${isSaved ? "bg-primary-soft text-primary" : "text-muted-foreground hover:bg-accent"}`}
+                >
+                  {isSaved ? "Saved" : "Save search"}
+                </button>
+              )}
             </div>
+            {!q.trim() && (saved.length > 0 || recent.length > 0) && (
+              <div className="space-y-2 border-b border-border px-3 py-2.5">
+                {saved.length > 0 && (
+                  <SearchChips title="Saved searches" items={saved} onPick={setQ} onRemove={(t) => setSaved(saved.filter((s) => s !== t))} />
+                )}
+                {recent.length > 0 && (
+                  <SearchChips title="Recent" items={recent} onPick={setQ} onRemove={(t) => setRecent(recent.filter((s) => s !== t))} />
+                )}
+              </div>
+            )}
             <div className="max-h-[420px] overflow-y-auto py-1">
+
               {results.length === 0 ? (
                 <div className="px-3 py-10 text-center text-xs text-muted-foreground">
                   {q ? `No matches for "${q}"` : "Start typing to search records & walls…"}
