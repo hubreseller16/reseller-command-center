@@ -63,4 +63,8 @@ const config: WallConfig = {
   ],
   searchFields: ["reseller", "legal_name", "doc_number"],
   primaryField: "reseller", subField: "legal_name",
+  renderDetail: (r) => (
+    <KycDocuments recordId={r.id} status={r.status} reviewer={r.reviewer} submittedAt={r.submitted_at} />
+  ),
 };
+
