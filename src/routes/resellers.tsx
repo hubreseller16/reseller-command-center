@@ -332,9 +332,14 @@ function ResellersWall() {
                   <SelectItem value="tier">Tier (high)</SelectItem>
                 </SelectContent>
               </Select>
+              <DensitySwitcher value={density} onChange={setDensity} />
+              <ToolBtn label="Export" onClick={() => setExportOpen(true)}><Download className="h-3.5 w-3.5" /></ToolBtn>
+              <ToolBtn label="Import" onClick={() => setImportOpen(true)}><Upload className="h-3.5 w-3.5" /></ToolBtn>
             </div>
           }
         >
+          <FilterChips chips={filterChips} onRemove={clearFilter} onClearAll={clearAllFilters} />
+
           {isLoading ? (
             <div className="space-y-2 p-4">
               {[1, 2, 3, 4].map((i) => <div key={i} className="h-12 animate-pulse rounded bg-muted/60" />)}
