@@ -6,11 +6,17 @@ import {
   Users, Plus, Search, Filter, RefreshCcw, MoreHorizontal, ShieldCheck,
   ShieldAlert, Pause, Play, CheckCircle2, XCircle, Mail, Phone, MapPin,
   Wallet, Percent, KeyRound, ShoppingCart, Activity, ScrollText, Bell, ChevronsUpDown,
-  ArrowDownUp, BadgeCheck,
+  ArrowDownUp, BadgeCheck, Download, Upload, Trash2, BadgeCheck as VerifyIcon,
 } from "lucide-react";
 
 import { WallHeader } from "@/components/wall/Shell";
 import { Btn, Card, EmptyState, KPI, SectionCard } from "@/components/wall/Empty";
+import { BulkBar } from "@/components/wall/BulkBar";
+import {
+  DensitySwitcher, ExportDialog, FilterChips, ImportDialog, Pagination, ToolBtn, type Density,
+} from "@/components/wall/DataTools";
+import { Checkbox } from "@/components/ui/checkbox";
+
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
