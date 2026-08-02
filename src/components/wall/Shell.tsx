@@ -311,14 +311,29 @@ function useOutsideClose<T extends HTMLElement>(onClose: () => void) {
   return ref;
 }
 
+function useLocalList(key: string) {
+  const [list, setList] = useState<string[]>([]);
+  useEffect(() => {
+    try { setList(JSON.parse(window.localStorage.getItem(key) ?? "[]")); } catch { /* ignore */ }
+  }, [key]);
+  const write = (next: string[]) => {
+    setList(next);
+    try { window.localStorage.setItem(key, JSON.stringify(next)); } catch { /* ignore */ }
+  };
+  return [list, write] as const;
+}
+
 function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
+  const [recent, setRecent] = useLocalList("wall:search:recent");
+  const [saved, setSaved] = useLocalList("wall:search:saved");
   const navigate = useNavigate();
   const ref = useOutsideClose<HTMLDivElement>(() => setOpen(false));
   const navItems = useMemo(() => flattenNav(), []);
   const records = useSearchEntries();
+
 
   type Row =
     | { kind: "nav"; item: FlatNav }
