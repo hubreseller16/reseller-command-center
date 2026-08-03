@@ -130,7 +130,7 @@ export function TopBar() {
             </div>
           </Link>
 
-          <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex">
+          <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex lg:hidden">
             {NAV.map((n) =>
               isGroup(n) ? (
                 <NavDropdown key={n.label} group={n} />
