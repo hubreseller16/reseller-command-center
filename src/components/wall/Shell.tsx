@@ -120,7 +120,7 @@ export function TopBar() {
             <Menu className="h-4 w-4" />
           </button>
 
-          <Link to="/" className="mr-2 flex shrink-0 items-center gap-2">
+          <Link to="/" className="mr-2 flex shrink-0 items-center gap-2 lg:hidden">
             <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
               <Crown className="h-4 w-4" />
             </span>
