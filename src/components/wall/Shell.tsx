@@ -115,7 +115,7 @@ export function TopBar() {
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent md:hidden"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent lg:hidden"
           >
             <Menu className="h-4 w-4" />
           </button>
