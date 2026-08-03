@@ -185,7 +185,7 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
   const isActive = (to: string) => pathname === to || (to !== "/" && pathname.startsWith(to + "/"));
 
   return (
-    <div className="fixed inset-0 z-[90] md:hidden" onClick={onClose}>
+    <div className="fixed inset-0 z-[90] lg:hidden" onClick={onClose}>
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
       <aside
         onClick={(e) => e.stopPropagation()}
