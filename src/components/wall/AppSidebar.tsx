@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { NAV, type WallNavItem } from "./Shell";
+import { NAV, type WallNavItem } from "./nav";
 
 const COLLAPSE_KEY = "sv:sidebar:collapsed";
 
