@@ -1,60 +1,20 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
-  ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
-  Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
+  ChevronDown, Search, Crown, Inbox, User, LogOut,
   Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
 import { AppSidebar, useSidebarState } from "./AppSidebar";
+import { NAV, isGroup, type WallNavItem, type WallNavGroup, type WallNavGroupNode } from "./nav";
 import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
-export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
-export type WallNavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } | WallNavItem;
+export { NAV, isGroup };
+export type { WallNavItem, WallNavGroup };
 
-export const NAV: WallNavGroup[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  {
-    label: "Catalog", icon: Package, items: [
-      { to: "/products", label: "Products", icon: Package },
-      { to: "/licenses", label: "Licenses", icon: KeyRound },
-      { to: "/subscriptions", label: "Subscriptions", icon: Repeat },
-    ],
-  },
-  {
-    label: "People", icon: Users, items: [
-      { to: "/resellers", label: "Resellers", icon: Users },
-      { to: "/customers", label: "Customers", icon: Users },
-      { to: "/kyc", label: "KYC", icon: ShieldCheck },
-      { to: "/approvals", label: "Approvals", icon: BadgeCheck },
-    ],
-  },
-  {
-    label: "Commerce", icon: ShoppingCart, items: [
-      { to: "/orders", label: "Orders", icon: ShoppingCart },
-      { to: "/wallet", label: "Wallet", icon: Wallet },
-      { to: "/commission", label: "Commission", icon: Percent },
-    ],
-  },
-  {
-    label: "Insights", icon: BarChart3, items: [
-      { to: "/analytics", label: "Analytics", icon: BarChart3 },
-      { to: "/reports", label: "Reports", icon: FileBarChart },
-      { to: "/audit", label: "Audit", icon: ScrollText },
-      { to: "/notifications", label: "Notifications", icon: Bell },
-    ],
-  },
-  { to: "/support", label: "Support", icon: Headphones },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
+function NavDropdown({ group }: { group: WallNavGroupNode }) {
 
-function isGroup(n: WallNavGroup): n is { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } {
-  return (n as { items?: WallNavItem[] }).items !== undefined;
-}
-
-function NavDropdown({ group }: { group: { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
