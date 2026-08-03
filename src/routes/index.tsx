@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Users, ShoppingCart, Wallet, KeyRound, ShieldCheck, BadgeCheck, Percent,
   TrendingUp, Activity, ScrollText, Inbox, ArrowUpRight, RefreshCcw, Plus,
+  Sparkles, Crown,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { WallHeader } from "@/components/wall/Shell";
