@@ -82,6 +82,62 @@ function DashboardWall() {
 
   return (
     <>
+      {/* HERO BANNER */}
+      <section className="hero-surface relative mb-6 overflow-hidden p-6 md:p-10">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+        <div className="absolute -bottom-24 -left-10 h-64 w-64 rounded-full bg-accent-pink/40 blur-3xl" />
+
+        <div className="relative grid items-start gap-8 lg:grid-cols-2">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
+              <Sparkles className="h-3.5 w-3.5" /> Software Vala Boss Panel
+            </div>
+            <h1 className="mt-5 text-4xl font-bold tracking-tight md:text-6xl">Reseller Manager</h1>
+            <p className="mt-3 max-w-md text-primary-foreground/80">
+              Approve resellers, verify KYC, run commission cycles and track every order — from one command center.
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link to="/resellers" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-primary transition hover:bg-white/90">
+                Open Resellers <ArrowUpRight className="h-4 w-4" />
+              </Link>
+              <Link to="/approvals" className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-5 py-2.5 text-sm font-medium backdrop-blur transition hover:bg-white/25">
+                <BadgeCheck className="h-4 w-4" /> Approval Inbox
+              </Link>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-medium">
+                <Activity className="h-3 w-3" /> {isFetching ? "Syncing…" : "Live"}
+              </span>
+            </div>
+          </div>
+
+          <div className="w-full max-w-sm lg:justify-self-end">
+            <div className="rounded-2xl border border-white/15 bg-black/25 p-5 backdrop-blur">
+              <div className="flex items-center gap-3">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gradient-to-br from-accent-pink to-primary-glow">
+                  <Crown className="h-6 w-6" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold">Boss Vala</p>
+                  <p className="text-xs text-primary-foreground/70">Founder · Full access</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                {[
+                  ["Resellers", String(data?.resellers ?? 0)],
+                  ["KYC", String(data?.pendingKyc ?? 0)],
+                  ["Approvals", String(data?.pendingApprovals ?? 0)],
+                ].map(([l, v]) => (
+                  <div key={l} className="rounded-xl border border-white/15 bg-white/10 py-2">
+                    <p className="text-[10px] uppercase tracking-wider text-primary-foreground/60">{l}</p>
+                    <p className="text-sm font-semibold">{v}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <WallHeader
         eyebrow="Boss Panel"
         title="Reseller Manager — Dashboard"
@@ -95,6 +151,7 @@ function DashboardWall() {
           </>
         }
       />
+
 
       {/* KPI strip — pulls real counts from Lovable Cloud. Shows 0 until tables exist. */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8">
