@@ -1,59 +1,20 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
-  ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
-  Headphones, Settings, ChevronDown, Search, Crown, Inbox, User, LogOut,
+  ChevronDown, Search, Crown, Inbox, User, LogOut, Bell, Settings,
   Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
+import { AppSidebar, useSidebarState } from "./AppSidebar";
+import { NAV, isGroup, type WallNavItem, type WallNavGroup, type WallNavGroupNode } from "./nav";
 import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
-export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
-export type WallNavGroup = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } | WallNavItem;
+export { NAV, isGroup };
+export type { WallNavItem, WallNavGroup };
 
-export const NAV: WallNavGroup[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  {
-    label: "Catalog", icon: Package, items: [
-      { to: "/products", label: "Products", icon: Package },
-      { to: "/licenses", label: "Licenses", icon: KeyRound },
-      { to: "/subscriptions", label: "Subscriptions", icon: Repeat },
-    ],
-  },
-  {
-    label: "People", icon: Users, items: [
-      { to: "/resellers", label: "Resellers", icon: Users },
-      { to: "/customers", label: "Customers", icon: Users },
-      { to: "/kyc", label: "KYC", icon: ShieldCheck },
-      { to: "/approvals", label: "Approvals", icon: BadgeCheck },
-    ],
-  },
-  {
-    label: "Commerce", icon: ShoppingCart, items: [
-      { to: "/orders", label: "Orders", icon: ShoppingCart },
-      { to: "/wallet", label: "Wallet", icon: Wallet },
-      { to: "/commission", label: "Commission", icon: Percent },
-    ],
-  },
-  {
-    label: "Insights", icon: BarChart3, items: [
-      { to: "/analytics", label: "Analytics", icon: BarChart3 },
-      { to: "/reports", label: "Reports", icon: FileBarChart },
-      { to: "/audit", label: "Audit", icon: ScrollText },
-      { to: "/notifications", label: "Notifications", icon: Bell },
-    ],
-  },
-  { to: "/support", label: "Support", icon: Headphones },
-  { to: "/settings", label: "Settings", icon: Settings },
-];
+function NavDropdown({ group }: { group: WallNavGroupNode }) {
 
-function isGroup(n: WallNavGroup): n is { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } {
-  return (n as { items?: WallNavItem[] }).items !== undefined;
-}
-
-function NavDropdown({ group }: { group: { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] } }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -115,12 +76,12 @@ export function TopBar() {
             type="button"
             aria-label="Open menu"
             onClick={() => setMobileOpen(true)}
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent md:hidden"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent lg:hidden"
           >
             <Menu className="h-4 w-4" />
           </button>
 
-          <Link to="/" className="mr-2 flex shrink-0 items-center gap-2">
+          <Link to="/" className="mr-2 flex shrink-0 items-center gap-2 lg:hidden">
             <span className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground shadow-sm">
               <Crown className="h-4 w-4" />
             </span>
@@ -130,7 +91,7 @@ export function TopBar() {
             </div>
           </Link>
 
-          <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex">
+          <nav className="ml-1 hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto md:flex lg:hidden">
             {NAV.map((n) =>
               isGroup(n) ? (
                 <NavDropdown key={n.label} group={n} />
@@ -185,7 +146,7 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
   const isActive = (to: string) => pathname === to || (to !== "/" && pathname.startsWith(to + "/"));
 
   return (
-    <div className="fixed inset-0 z-[90] md:hidden" onClick={onClose}>
+    <div className="fixed inset-0 z-[90] lg:hidden" onClick={onClose}>
       <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" />
       <aside
         onClick={(e) => e.stopPropagation()}
@@ -260,14 +221,19 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
 }
 
 export function WallShell({ children }: { children: ReactNode }) {
+  const { collapsed, toggleCollapsed } = useSidebarState();
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <TopBar />
-      <SubBar />
-      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">{children}</main>
+    <div className="flex min-h-screen w-full bg-background text-foreground">
+      <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar />
+        <SubBar />
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+      </div>
     </div>
   );
 }
+
 
 export function WallHeader({
   eyebrow, title, subtitle, actions,
