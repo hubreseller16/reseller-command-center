@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
+import { AppSidebar, useSidebarState } from "./AppSidebar";
 import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
