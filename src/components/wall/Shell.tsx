@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ChevronDown, Search, Crown, Inbox, User, LogOut,
+  ChevronDown, Search, Crown, Inbox, User, LogOut, Bell, Settings,
   Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
