@@ -260,14 +260,19 @@ function MobileNavDrawer({ open, onClose }: { open: boolean; onClose: () => void
 }
 
 export function WallShell({ children }: { children: ReactNode }) {
+  const { collapsed, toggleCollapsed } = useSidebarState();
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <TopBar />
-      <SubBar />
-      <main className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:py-8">{children}</main>
+    <div className="flex min-h-screen w-full bg-background text-foreground">
+      <AppSidebar collapsed={collapsed} onToggleCollapsed={toggleCollapsed} />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar />
+        <SubBar />
+        <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+      </div>
     </div>
   );
 }
+
 
 export function WallHeader({
   eyebrow, title, subtitle, actions,
