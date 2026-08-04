@@ -533,9 +533,10 @@ function NotificationsMenu() {
         aria-label="Notifications"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface hover:bg-accent"
       >
         <Bell className="h-4 w-4" />
+        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent-pink" />
       </button>
       {open && (
         <div className="absolute right-0 top-full z-50 mt-1 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
