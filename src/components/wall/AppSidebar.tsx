@@ -53,8 +53,10 @@ export function AppSidebar({
       .filter((g) => g.items.length > 0);
   }, [query, groups]);
 
-  const groupOpen = (label: string, items: WallNavItem[]) =>
-    openGroups[label] ?? items.some((i) => isActive(i.to));
+  // All Wall groups are expanded by default so every Wall is visible in the sidebar.
+  const groupOpen = (label: string) => openGroups[label] ?? true;
+
+
 
   const ItemLink = ({ item }: { item: WallNavItem }) => (
     <Link
@@ -133,7 +135,7 @@ export function AppSidebar({
         </div>
 
         {(filtered ?? groups).map((group) => {
-          const open = filtered ? true : groupOpen(group.label, group.items);
+          const open = filtered ? true : groupOpen(group.label);
           if (collapsed) {
             return (
               <div key={group.label} className="space-y-0.5 border-t border-border/60 pt-2">
