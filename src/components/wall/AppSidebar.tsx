@@ -54,7 +54,8 @@ export function AppSidebar({
   }, [query, groups]);
 
   const groupOpen = (label: string, items: WallNavItem[]) =>
-    openGroups[label] ?? items.some((i) => isActive(i.to));
+    openGroups[label] ?? (items.some((i) => isActive(i.to)) || true);
+
 
   const ItemLink = ({ item }: { item: WallNavItem }) => (
     <Link
