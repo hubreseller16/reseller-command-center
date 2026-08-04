@@ -113,7 +113,22 @@ export function TopBar() {
 
           <div className="ml-auto flex items-center gap-1.5 md:ml-0">
             <GlobalSearch />
+            <LocalePills />
+            <Link
+              to="/support"
+              aria-label="Support"
+              className="hidden h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground xl:grid"
+            >
+              <LifeBuoy className="h-4 w-4" />
+            </Link>
             <NotificationsMenu />
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              className="hidden h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground xl:grid"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
             <AvatarMenu />
           </div>
         </div>
