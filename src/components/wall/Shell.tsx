@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ChevronDown, Search, Crown, Inbox, User, LogOut, Bell, Settings,
+  ChevronDown, Search, Crown, Globe, Inbox, User, LogOut, Bell, Settings,
   Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -658,6 +658,94 @@ function AvatarMenu() {
               );
             })}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Locale pills — language + currency selectors (UI only)
+============================================================ */
+
+const LANGUAGES = [
+  { code: "en", native: "English" },
+  { code: "hi", native: "हिन्दी" },
+  { code: "mr", native: "मराठी" },
+  { code: "gu", native: "ગુજરાતી" },
+  { code: "ta", native: "தமிழ்" },
+  { code: "ar", native: "العربية" },
+];
+
+const CURRENCIES = [
+  { code: "INR", symbol: "₹", label: "Indian Rupee" },
+  { code: "USD", symbol: "$", label: "US Dollar" },
+  { code: "EUR", symbol: "€", label: "Euro" },
+  { code: "GBP", symbol: "£", label: "British Pound" },
+  { code: "AED", symbol: "د.إ", label: "UAE Dirham" },
+];
+
+function LocalePills() {
+  const [lang, setLang] = useState(LANGUAGES[0]);
+  const [cur, setCur] = useState(CURRENCIES[0]);
+  const [openMenu, setOpenMenu] = useState<"lang" | "cur" | null>(null);
+  const ref = useOutsideClose<HTMLDivElement>(() => setOpenMenu(null));
+
+  const pill =
+    "hidden items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground xl:flex";
+
+  return (
+    <div ref={ref} className="relative flex items-center gap-1.5">
+      <button
+        type="button"
+        aria-label="Language"
+        aria-expanded={openMenu === "lang"}
+        onClick={() => setOpenMenu((m) => (m === "lang" ? null : "lang"))}
+        className={pill}
+      >
+        <Globe className="h-3.5 w-3.5" /> {lang.code.toUpperCase()}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+      <button
+        type="button"
+        aria-label="Currency"
+        aria-expanded={openMenu === "cur"}
+        onClick={() => setOpenMenu((m) => (m === "cur" ? null : "cur"))}
+        className={pill}
+      >
+        <span className="font-semibold">{cur.symbol}</span> {cur.code}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+
+      {openMenu === "lang" && (
+        <div className="absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-56 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+          <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Language</div>
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => { setLang(l); setOpenMenu(null); }}
+              className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent ${lang.code === l.code ? "bg-primary/10 text-foreground" : ""}`}
+            >
+              <span className="truncate">{l.native}</span>
+              <span className="text-[10px] uppercase text-muted-foreground">{l.code}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {openMenu === "cur" && (
+        <div className="absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-52 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+          <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Currency</div>
+          {CURRENCIES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => { setCur(c); setOpenMenu(null); }}
+              className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent ${cur.code === c.code ? "bg-primary/10 text-foreground" : ""}`}
+            >
+              <span className="truncate">{c.label}</span>
+              <span className="text-[10px] font-semibold">{c.symbol} {c.code}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>
