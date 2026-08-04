@@ -135,7 +135,7 @@ export function AppSidebar({
         </div>
 
         {(filtered ?? groups).map((group) => {
-          const open = filtered ? true : groupOpen(group.label, group.items);
+          const open = filtered ? true : groupOpen(group.label);
           if (collapsed) {
             return (
               <div key={group.label} className="space-y-0.5 border-t border-border/60 pt-2">
