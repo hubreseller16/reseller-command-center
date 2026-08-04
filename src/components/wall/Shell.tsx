@@ -600,17 +600,45 @@ function AvatarMenu() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold ring-2 ring-background transition-transform hover:scale-105"
+        aria-label="Boss profile menu"
+        className="group ml-1 flex shrink-0 items-center gap-2.5 rounded-full border border-border bg-surface py-1 pl-1 pr-2 shadow-sm transition-all duration-200 hover:border-primary/40 hover:shadow-md sm:pr-3"
       >
-        SV
+        <span className="relative shrink-0">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-accent-pink via-primary to-primary-glow text-[11px] font-bold text-primary-foreground ring-1 ring-white/10">
+            BV
+          </span>
+          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent-emerald ring-2 ring-background" />
+        </span>
+        <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
+          <span className="max-w-[120px] truncate text-xs font-semibold">Boss Vala</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+            <Crown className="h-2.5 w-2.5" /> Founder
+          </span>
+        </span>
+        <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground sm:block" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[240px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
-          <div className="flex items-center gap-3 border-b border-border px-3 py-3">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold">SV</div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">Software Vala Boss</div>
-              <div className="truncate text-[11px] text-muted-foreground">Full-access owner</div>
+        <div className="absolute right-0 top-full z-50 mt-1 w-[264px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-2xl">
+          <div className="border-b border-border bg-gradient-to-br from-primary/15 via-accent-pink/10 to-transparent p-4">
+            <div className="flex items-center gap-3">
+              <span className="relative shrink-0">
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-accent-pink via-primary to-primary-glow text-sm font-bold text-primary-foreground ring-1 ring-white/10">
+                  BV
+                </span>
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent-emerald ring-2 ring-popover" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">Boss Vala</div>
+                <div className="truncate text-[11px] text-muted-foreground">boss@softwarevala.com</div>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                    <Crown className="h-2.5 w-2.5" /> Founder
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-accent-emerald/15 px-1.5 py-0.5 text-[10px] font-semibold text-accent-emerald">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent-emerald" /> Online
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="py-1">
