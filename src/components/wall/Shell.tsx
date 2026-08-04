@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  ChevronDown, Search, Crown, Inbox, User, LogOut, Bell, Settings,
+  ChevronDown, Search, Crown, Globe, Inbox, User, LogOut, Bell, Settings,
   Sun, Moon, LifeBuoy, CheckCheck, Hash, Menu, X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,7 +71,7 @@ export function TopBar() {
   return (
     <>
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-        <div className="mx-auto flex h-14 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-2 px-4 sm:px-6">
           <button
             type="button"
             aria-label="Open menu"
@@ -113,7 +113,22 @@ export function TopBar() {
 
           <div className="ml-auto flex items-center gap-1.5 md:ml-0">
             <GlobalSearch />
+            <LocalePills />
+            <Link
+              to="/support"
+              aria-label="Support"
+              className="hidden h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground xl:grid"
+            >
+              <LifeBuoy className="h-4 w-4" />
+            </Link>
             <NotificationsMenu />
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              className="hidden h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:text-foreground xl:grid"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
             <AvatarMenu />
           </div>
         </div>
@@ -518,9 +533,10 @@ function NotificationsMenu() {
         aria-label="Notifications"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface hover:bg-accent"
+        className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface hover:bg-accent"
       >
         <Bell className="h-4 w-4" />
+        <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-accent-pink" />
       </button>
       {open && (
         <div className="absolute right-0 top-full z-50 mt-1 w-[360px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
@@ -584,17 +600,45 @@ function AvatarMenu() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold ring-2 ring-background transition-transform hover:scale-105"
+        aria-label="Boss profile menu"
+        className="group ml-1 flex shrink-0 items-center gap-2.5 rounded-full border border-border bg-surface py-1 pl-1 pr-2 shadow-sm transition-all duration-200 hover:border-primary/40 hover:shadow-md sm:pr-3"
       >
-        SV
+        <span className="relative shrink-0">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-accent-pink via-primary to-primary-glow text-[11px] font-bold text-primary-foreground ring-1 ring-white/10">
+            BV
+          </span>
+          <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-accent-emerald ring-2 ring-background" />
+        </span>
+        <span className="hidden min-w-0 flex-col items-start leading-tight sm:flex">
+          <span className="max-w-[120px] truncate text-xs font-semibold">Boss Vala</span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">
+            <Crown className="h-2.5 w-2.5" /> Founder
+          </span>
+        </span>
+        <ChevronDown className="hidden h-3.5 w-3.5 text-muted-foreground transition-colors group-hover:text-foreground sm:block" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-[240px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg">
-          <div className="flex items-center gap-3 border-b border-border px-3 py-3">
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground text-[11px] font-bold">SV</div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">Software Vala Boss</div>
-              <div className="truncate text-[11px] text-muted-foreground">Full-access owner</div>
+        <div className="absolute right-0 top-full z-50 mt-1 w-[264px] overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-2xl">
+          <div className="border-b border-border bg-gradient-to-br from-primary/15 via-accent-pink/10 to-transparent p-4">
+            <div className="flex items-center gap-3">
+              <span className="relative shrink-0">
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-accent-pink via-primary to-primary-glow text-sm font-bold text-primary-foreground ring-1 ring-white/10">
+                  BV
+                </span>
+                <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-accent-emerald ring-2 ring-popover" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">Boss Vala</div>
+                <div className="truncate text-[11px] text-muted-foreground">boss@softwarevala.com</div>
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                    <Crown className="h-2.5 w-2.5" /> Founder
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-accent-emerald/15 px-1.5 py-0.5 text-[10px] font-semibold text-accent-emerald">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent-emerald" /> Online
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="py-1">
@@ -614,6 +658,94 @@ function AvatarMenu() {
               );
             })}
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Locale pills — language + currency selectors (UI only)
+============================================================ */
+
+const LANGUAGES = [
+  { code: "en", native: "English" },
+  { code: "hi", native: "हिन्दी" },
+  { code: "mr", native: "मराठी" },
+  { code: "gu", native: "ગુજરાતી" },
+  { code: "ta", native: "தமிழ்" },
+  { code: "ar", native: "العربية" },
+];
+
+const CURRENCIES = [
+  { code: "INR", symbol: "₹", label: "Indian Rupee" },
+  { code: "USD", symbol: "$", label: "US Dollar" },
+  { code: "EUR", symbol: "€", label: "Euro" },
+  { code: "GBP", symbol: "£", label: "British Pound" },
+  { code: "AED", symbol: "د.إ", label: "UAE Dirham" },
+];
+
+function LocalePills() {
+  const [lang, setLang] = useState(LANGUAGES[0]);
+  const [cur, setCur] = useState(CURRENCIES[0]);
+  const [openMenu, setOpenMenu] = useState<"lang" | "cur" | null>(null);
+  const ref = useOutsideClose<HTMLDivElement>(() => setOpenMenu(null));
+
+  const pill =
+    "hidden items-center gap-1 rounded-full border border-border bg-surface px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground xl:flex";
+
+  return (
+    <div ref={ref} className="relative flex items-center gap-1.5">
+      <button
+        type="button"
+        aria-label="Language"
+        aria-expanded={openMenu === "lang"}
+        onClick={() => setOpenMenu((m) => (m === "lang" ? null : "lang"))}
+        className={pill}
+      >
+        <Globe className="h-3.5 w-3.5" /> {lang.code.toUpperCase()}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+      <button
+        type="button"
+        aria-label="Currency"
+        aria-expanded={openMenu === "cur"}
+        onClick={() => setOpenMenu((m) => (m === "cur" ? null : "cur"))}
+        className={pill}
+      >
+        <span className="font-semibold">{cur.symbol}</span> {cur.code}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+
+      {openMenu === "lang" && (
+        <div className="absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-56 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+          <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Language</div>
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => { setLang(l); setOpenMenu(null); }}
+              className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent ${lang.code === l.code ? "bg-primary/10 text-foreground" : ""}`}
+            >
+              <span className="truncate">{l.native}</span>
+              <span className="text-[10px] uppercase text-muted-foreground">{l.code}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {openMenu === "cur" && (
+        <div className="absolute right-0 top-full z-50 mt-1 max-h-[70vh] w-52 overflow-y-auto rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+          <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Currency</div>
+          {CURRENCIES.map((c) => (
+            <button
+              key={c.code}
+              onClick={() => { setCur(c); setOpenMenu(null); }}
+              className={`flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent ${cur.code === c.code ? "bg-primary/10 text-foreground" : ""}`}
+            >
+              <span className="truncate">{c.label}</span>
+              <span className="text-[10px] font-semibold">{c.symbol} {c.code}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>
