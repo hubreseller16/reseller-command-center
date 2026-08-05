@@ -16,10 +16,14 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResellersRouteImport } from './routes/resellers'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PayoutsRouteImport } from './routes/payouts'
 import { Route as OrdersRouteImport } from './routes/orders'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as KycRouteImport } from './routes/kyc'
+import { Route as HierarchyRouteImport } from './routes/hierarchy'
+import { Route as EarningsRouteImport } from './routes/earnings'
 import { Route as CustomersRouteImport } from './routes/customers'
 import { Route as CommissionRouteImport } from './routes/commission'
 import { Route as AuditRouteImport } from './routes/audit'
@@ -62,9 +66,19 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayoutsRoute = PayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrdersRoute = OrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -80,6 +94,16 @@ const LicensesRoute = LicensesRouteImport.update({
 const KycRoute = KycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HierarchyRoute = HierarchyRouteImport.update({
+  id: '/hierarchy',
+  path: '/hierarchy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EarningsRoute = EarningsRouteImport.update({
+  id: '/earnings',
+  path: '/earnings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CustomersRoute = CustomersRouteImport.update({
@@ -120,10 +144,14 @@ export interface FileRoutesByFullPath {
   '/audit': typeof AuditRoute
   '/commission': typeof CommissionRoute
   '/customers': typeof CustomersRoute
+  '/earnings': typeof EarningsRoute
+  '/hierarchy': typeof HierarchyRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
+  '/payouts': typeof PayoutsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
@@ -139,10 +167,14 @@ export interface FileRoutesByTo {
   '/audit': typeof AuditRoute
   '/commission': typeof CommissionRoute
   '/customers': typeof CustomersRoute
+  '/earnings': typeof EarningsRoute
+  '/hierarchy': typeof HierarchyRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
+  '/payouts': typeof PayoutsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
@@ -159,10 +191,14 @@ export interface FileRoutesById {
   '/audit': typeof AuditRoute
   '/commission': typeof CommissionRoute
   '/customers': typeof CustomersRoute
+  '/earnings': typeof EarningsRoute
+  '/hierarchy': typeof HierarchyRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
+  '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
+  '/payouts': typeof PayoutsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
@@ -180,10 +216,14 @@ export interface FileRouteTypes {
     | '/audit'
     | '/commission'
     | '/customers'
+    | '/earnings'
+    | '/hierarchy'
     | '/kyc'
     | '/licenses'
     | '/notifications'
+    | '/onboarding'
     | '/orders'
+    | '/payouts'
     | '/products'
     | '/reports'
     | '/resellers'
@@ -199,10 +239,14 @@ export interface FileRouteTypes {
     | '/audit'
     | '/commission'
     | '/customers'
+    | '/earnings'
+    | '/hierarchy'
     | '/kyc'
     | '/licenses'
     | '/notifications'
+    | '/onboarding'
     | '/orders'
+    | '/payouts'
     | '/products'
     | '/reports'
     | '/resellers'
@@ -218,10 +262,14 @@ export interface FileRouteTypes {
     | '/audit'
     | '/commission'
     | '/customers'
+    | '/earnings'
+    | '/hierarchy'
     | '/kyc'
     | '/licenses'
     | '/notifications'
+    | '/onboarding'
     | '/orders'
+    | '/payouts'
     | '/products'
     | '/reports'
     | '/resellers'
@@ -238,10 +286,14 @@ export interface RootRouteChildren {
   AuditRoute: typeof AuditRoute
   CommissionRoute: typeof CommissionRoute
   CustomersRoute: typeof CustomersRoute
+  EarningsRoute: typeof EarningsRoute
+  HierarchyRoute: typeof HierarchyRoute
   KycRoute: typeof KycRoute
   LicensesRoute: typeof LicensesRoute
   NotificationsRoute: typeof NotificationsRoute
+  OnboardingRoute: typeof OnboardingRoute
   OrdersRoute: typeof OrdersRoute
+  PayoutsRoute: typeof PayoutsRoute
   ProductsRoute: typeof ProductsRoute
   ReportsRoute: typeof ReportsRoute
   ResellersRoute: typeof ResellersRoute
@@ -302,11 +354,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payouts': {
+      id: '/payouts'
+      path: '/payouts'
+      fullPath: '/payouts'
+      preLoaderRoute: typeof PayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/orders': {
       id: '/orders'
       path: '/orders'
       fullPath: '/orders'
       preLoaderRoute: typeof OrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -328,6 +394,20 @@ declare module '@tanstack/react-router' {
       path: '/kyc'
       fullPath: '/kyc'
       preLoaderRoute: typeof KycRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hierarchy': {
+      id: '/hierarchy'
+      path: '/hierarchy'
+      fullPath: '/hierarchy'
+      preLoaderRoute: typeof HierarchyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/earnings': {
+      id: '/earnings'
+      path: '/earnings'
+      fullPath: '/earnings'
+      preLoaderRoute: typeof EarningsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/customers': {
@@ -382,10 +462,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuditRoute: AuditRoute,
   CommissionRoute: CommissionRoute,
   CustomersRoute: CustomersRoute,
+  EarningsRoute: EarningsRoute,
+  HierarchyRoute: HierarchyRoute,
   KycRoute: KycRoute,
   LicensesRoute: LicensesRoute,
   NotificationsRoute: NotificationsRoute,
+  OnboardingRoute: OnboardingRoute,
   OrdersRoute: OrdersRoute,
+  PayoutsRoute: PayoutsRoute,
   ProductsRoute: ProductsRoute,
   ReportsRoute: ReportsRoute,
   ResellersRoute: ResellersRoute,
