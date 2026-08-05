@@ -10,18 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WalletRouteImport } from './routes/wallet'
+import { Route as TerritoriesRouteImport } from './routes/territories'
+import { Route as TargetsRouteImport } from './routes/targets'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SubscriptionsRouteImport } from './routes/subscriptions'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResellersRouteImport } from './routes/resellers'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PermissionsRouteImport } from './routes/permissions'
 import { Route as PayoutsRouteImport } from './routes/payouts'
 import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LicensesRouteImport } from './routes/licenses'
 import { Route as KycRouteImport } from './routes/kyc'
+import { Route as IncentivesRouteImport } from './routes/incentives'
 import { Route as HierarchyRouteImport } from './routes/hierarchy'
 import { Route as EarningsRouteImport } from './routes/earnings'
 import { Route as CustomersRouteImport } from './routes/customers'
@@ -34,6 +38,16 @@ import { Route as IndexRouteImport } from './routes/index'
 const WalletRoute = WalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerritoriesRoute = TerritoriesRouteImport.update({
+  id: '/territories',
+  path: '/territories',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TargetsRoute = TargetsRouteImport.update({
+  id: '/targets',
+  path: '/targets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupportRoute = SupportRouteImport.update({
@@ -66,6 +80,11 @@ const ProductsRoute = ProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PermissionsRoute = PermissionsRouteImport.update({
+  id: '/permissions',
+  path: '/permissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PayoutsRoute = PayoutsRouteImport.update({
   id: '/payouts',
   path: '/payouts',
@@ -94,6 +113,11 @@ const LicensesRoute = LicensesRouteImport.update({
 const KycRoute = KycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IncentivesRoute = IncentivesRouteImport.update({
+  id: '/incentives',
+  path: '/incentives',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HierarchyRoute = HierarchyRouteImport.update({
@@ -146,18 +170,22 @@ export interface FileRoutesByFullPath {
   '/customers': typeof CustomersRoute
   '/earnings': typeof EarningsRoute
   '/hierarchy': typeof HierarchyRoute
+  '/incentives': typeof IncentivesRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/payouts': typeof PayoutsRoute
+  '/permissions': typeof PermissionsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
+  '/targets': typeof TargetsRoute
+  '/territories': typeof TerritoriesRoute
   '/wallet': typeof WalletRoute
 }
 export interface FileRoutesByTo {
@@ -169,18 +197,22 @@ export interface FileRoutesByTo {
   '/customers': typeof CustomersRoute
   '/earnings': typeof EarningsRoute
   '/hierarchy': typeof HierarchyRoute
+  '/incentives': typeof IncentivesRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/payouts': typeof PayoutsRoute
+  '/permissions': typeof PermissionsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
+  '/targets': typeof TargetsRoute
+  '/territories': typeof TerritoriesRoute
   '/wallet': typeof WalletRoute
 }
 export interface FileRoutesById {
@@ -193,18 +225,22 @@ export interface FileRoutesById {
   '/customers': typeof CustomersRoute
   '/earnings': typeof EarningsRoute
   '/hierarchy': typeof HierarchyRoute
+  '/incentives': typeof IncentivesRoute
   '/kyc': typeof KycRoute
   '/licenses': typeof LicensesRoute
   '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/orders': typeof OrdersRoute
   '/payouts': typeof PayoutsRoute
+  '/permissions': typeof PermissionsRoute
   '/products': typeof ProductsRoute
   '/reports': typeof ReportsRoute
   '/resellers': typeof ResellersRoute
   '/settings': typeof SettingsRoute
   '/subscriptions': typeof SubscriptionsRoute
   '/support': typeof SupportRoute
+  '/targets': typeof TargetsRoute
+  '/territories': typeof TerritoriesRoute
   '/wallet': typeof WalletRoute
 }
 export interface FileRouteTypes {
@@ -218,18 +254,22 @@ export interface FileRouteTypes {
     | '/customers'
     | '/earnings'
     | '/hierarchy'
+    | '/incentives'
     | '/kyc'
     | '/licenses'
     | '/notifications'
     | '/onboarding'
     | '/orders'
     | '/payouts'
+    | '/permissions'
     | '/products'
     | '/reports'
     | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
+    | '/targets'
+    | '/territories'
     | '/wallet'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -241,18 +281,22 @@ export interface FileRouteTypes {
     | '/customers'
     | '/earnings'
     | '/hierarchy'
+    | '/incentives'
     | '/kyc'
     | '/licenses'
     | '/notifications'
     | '/onboarding'
     | '/orders'
     | '/payouts'
+    | '/permissions'
     | '/products'
     | '/reports'
     | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
+    | '/targets'
+    | '/territories'
     | '/wallet'
   id:
     | '__root__'
@@ -264,18 +308,22 @@ export interface FileRouteTypes {
     | '/customers'
     | '/earnings'
     | '/hierarchy'
+    | '/incentives'
     | '/kyc'
     | '/licenses'
     | '/notifications'
     | '/onboarding'
     | '/orders'
     | '/payouts'
+    | '/permissions'
     | '/products'
     | '/reports'
     | '/resellers'
     | '/settings'
     | '/subscriptions'
     | '/support'
+    | '/targets'
+    | '/territories'
     | '/wallet'
   fileRoutesById: FileRoutesById
 }
@@ -288,18 +336,22 @@ export interface RootRouteChildren {
   CustomersRoute: typeof CustomersRoute
   EarningsRoute: typeof EarningsRoute
   HierarchyRoute: typeof HierarchyRoute
+  IncentivesRoute: typeof IncentivesRoute
   KycRoute: typeof KycRoute
   LicensesRoute: typeof LicensesRoute
   NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   OrdersRoute: typeof OrdersRoute
   PayoutsRoute: typeof PayoutsRoute
+  PermissionsRoute: typeof PermissionsRoute
   ProductsRoute: typeof ProductsRoute
   ReportsRoute: typeof ReportsRoute
   ResellersRoute: typeof ResellersRoute
   SettingsRoute: typeof SettingsRoute
   SubscriptionsRoute: typeof SubscriptionsRoute
   SupportRoute: typeof SupportRoute
+  TargetsRoute: typeof TargetsRoute
+  TerritoriesRoute: typeof TerritoriesRoute
   WalletRoute: typeof WalletRoute
 }
 
@@ -310,6 +362,20 @@ declare module '@tanstack/react-router' {
       path: '/wallet'
       fullPath: '/wallet'
       preLoaderRoute: typeof WalletRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/territories': {
+      id: '/territories'
+      path: '/territories'
+      fullPath: '/territories'
+      preLoaderRoute: typeof TerritoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/targets': {
+      id: '/targets'
+      path: '/targets'
+      fullPath: '/targets'
+      preLoaderRoute: typeof TargetsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/support': {
@@ -354,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/permissions': {
+      id: '/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof PermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/payouts': {
       id: '/payouts'
       path: '/payouts'
@@ -394,6 +467,13 @@ declare module '@tanstack/react-router' {
       path: '/kyc'
       fullPath: '/kyc'
       preLoaderRoute: typeof KycRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/incentives': {
+      id: '/incentives'
+      path: '/incentives'
+      fullPath: '/incentives'
+      preLoaderRoute: typeof IncentivesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hierarchy': {
@@ -464,18 +544,22 @@ const rootRouteChildren: RootRouteChildren = {
   CustomersRoute: CustomersRoute,
   EarningsRoute: EarningsRoute,
   HierarchyRoute: HierarchyRoute,
+  IncentivesRoute: IncentivesRoute,
   KycRoute: KycRoute,
   LicensesRoute: LicensesRoute,
   NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   OrdersRoute: OrdersRoute,
   PayoutsRoute: PayoutsRoute,
+  PermissionsRoute: PermissionsRoute,
   ProductsRoute: ProductsRoute,
   ReportsRoute: ReportsRoute,
   ResellersRoute: ResellersRoute,
   SettingsRoute: SettingsRoute,
   SubscriptionsRoute: SubscriptionsRoute,
   SupportRoute: SupportRoute,
+  TargetsRoute: TargetsRoute,
+  TerritoriesRoute: TerritoriesRoute,
   WalletRoute: WalletRoute,
 }
 export const routeTree = rootRouteImport

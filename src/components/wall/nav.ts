@@ -1,7 +1,8 @@
 import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
-  Headphones, Settings,
+  Headphones, Settings, ClipboardCheck, Network, BadgeIndianRupee,
+  ChartNoAxesCombined, Goal, Gift, MapPinned, TrendingUp,
 } from "lucide-react";
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
@@ -20,6 +21,8 @@ export const NAV: WallNavGroup[] = [
   {
     label: "People", icon: Users, items: [
       { to: "/resellers", label: "Resellers", icon: Users },
+      { to: "/onboarding", label: "Onboarding", icon: ClipboardCheck },
+      { to: "/hierarchy", label: "Hierarchy", icon: Network },
       { to: "/customers", label: "Customers", icon: Users },
       { to: "/kyc", label: "KYC", icon: ShieldCheck },
       { to: "/approvals", label: "Approvals", icon: BadgeCheck },
@@ -30,6 +33,15 @@ export const NAV: WallNavGroup[] = [
       { to: "/orders", label: "Orders", icon: ShoppingCart },
       { to: "/wallet", label: "Wallet", icon: Wallet },
       { to: "/commission", label: "Commission", icon: Percent },
+      { to: "/payouts", label: "Payouts", icon: BadgeIndianRupee },
+      { to: "/earnings", label: "Earnings", icon: ChartNoAxesCombined },
+    ],
+  },
+  {
+    label: "Growth", icon: TrendingUp, items: [
+      { to: "/targets", label: "Targets", icon: Goal },
+      { to: "/incentives", label: "Incentives", icon: Gift },
+      { to: "/territories", label: "Territories", icon: MapPinned },
     ],
   },
   {
@@ -37,12 +49,14 @@ export const NAV: WallNavGroup[] = [
       { to: "/analytics", label: "Analytics", icon: BarChart3 },
       { to: "/reports", label: "Reports", icon: FileBarChart },
       { to: "/audit", label: "Audit", icon: ScrollText },
+      { to: "/permissions", label: "Permissions", icon: ShieldCheck },
       { to: "/notifications", label: "Notifications", icon: Bell },
     ],
   },
   { to: "/support", label: "Support", icon: Headphones },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
+
 
 export function isGroup(n: WallNavGroup): n is WallNavGroupNode {
   return (n as { items?: WallNavItem[] }).items !== undefined;
