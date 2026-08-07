@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV, type WallNavItem } from "./nav";
@@ -13,12 +13,25 @@ export function useSidebarState() {
     try { setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1"); } catch { /* ignore */ }
   }, []);
 
-  const toggleCollapsed = () =>
+  const toggleCollapsed = useCallback(() => {
     setCollapsed((v) => {
       const next = !v;
       try { localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
       return next;
     });
+  }, []);
+
+  // Ctrl/⌘ + B toggles the sidebar. The shortcut is surfaced in the button tooltips.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "b" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        toggleCollapsed();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [toggleCollapsed]);
 
   return { collapsed, toggleCollapsed };
 }
@@ -96,9 +109,11 @@ export function AppSidebar({
         </Link>
         {!collapsed && (
           <button
+            type="button"
             onClick={onToggleCollapsed}
-            className="ml-auto grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Collapse sidebar"
+            className="ml-auto grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Collapse sidebar (Ctrl or Command + B)"
+            title="Collapse sidebar (Ctrl/⌘ + B)"
           >
             <PanelLeftClose className="h-4 w-4" />
           </button>
@@ -107,9 +122,11 @@ export function AppSidebar({
 
       {collapsed && (
         <button
+          type="button"
           onClick={onToggleCollapsed}
-          className="mx-auto mt-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground"
-          aria-label="Expand sidebar"
+          className="mx-auto mt-3 grid h-8 w-8 place-items-center rounded-lg border border-border text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Expand sidebar (Ctrl or Command + B)"
+          title="Expand sidebar (Ctrl/⌘ + B)"
         >
           <PanelLeftOpen className="h-4 w-4" />
         </button>
@@ -146,6 +163,8 @@ export function AppSidebar({
           return (
             <div key={group.label}>
               <button
+                      type="button"
+                aria-expanded={open}
                 onClick={() => setOpenGroups((s) => ({ ...s, [group.label]: !open }))}
                 className="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               >

@@ -82,8 +82,13 @@ const SidebarProvider = React.forwardRef<
           _setOpen(openState);
         }
 
-        // This sets the cookie to keep the sidebar state.
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+        // Persist the sidebar state. Wrapped in try/catch so strict cookie
+        // policies (or blocked storage) degrade gracefully instead of throwing.
+        try {
+          document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}; SameSite=Lax`;
+        } catch {
+          /* cookie storage unavailable — state stays in memory for this session */
+        }
       },
       [setOpenProp, open],
     );
@@ -270,6 +275,7 @@ const SidebarTrigger = React.forwardRef<
       variant="ghost"
       size="icon"
       className={cn("h-7 w-7", className)}
+      title="Toggle Sidebar (Ctrl/⌘ + B)"
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -277,7 +283,7 @@ const SidebarTrigger = React.forwardRef<
       {...props}
     >
       <PanelLeft />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">Toggle Sidebar (Ctrl or Command + B)</span>
     </Button>
   );
 });
@@ -291,12 +297,12 @@ const SidebarRail = React.forwardRef<HTMLButtonElement, React.ComponentProps<"bu
       <button
         ref={ref}
         data-sidebar="rail"
+        type="button"
         aria-label="Toggle Sidebar"
-        tabIndex={-1}
         onClick={toggleSidebar}
-        title="Toggle Sidebar"
+        title="Toggle Sidebar (Ctrl/⌘ + B)"
         className={cn(
-          "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
+          "absolute inset-y-0 z-20 hidden w-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
           "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
           "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
           "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full group-data-[collapsible=offcanvas]:hover:bg-sidebar",
