@@ -7,6 +7,8 @@ import {
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
 import { AppSidebar, useSidebarState } from "./AppSidebar";
+import { CookieConsent } from "./CookieConsent";
+
 import { NAV, isGroup, type WallNavItem, type WallNavGroup, type WallNavGroupNode } from "./nav";
 import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
