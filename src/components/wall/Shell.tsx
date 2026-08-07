@@ -7,6 +7,8 @@ import {
 import { toast } from "sonner";
 import { SubBar } from "./SubBar";
 import { AppSidebar, useSidebarState } from "./AppSidebar";
+import { CookieConsent } from "./CookieConsent";
+
 import { NAV, isGroup, type WallNavItem, type WallNavGroup, type WallNavGroupNode } from "./nav";
 import { useSearchEntries, requestOpen, type SearchEntry } from "@/lib/searchIndex";
 
@@ -245,9 +247,11 @@ export function WallShell({ children }: { children: ReactNode }) {
         <SubBar />
         <main className="mx-auto w-full max-w-[1600px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
       </div>
+      <CookieConsent />
     </div>
   );
 }
+
 
 
 export function WallHeader({

@@ -3,20 +3,31 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, Search, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV, type WallNavItem } from "./nav";
-
-const COLLAPSE_KEY = "sv:sidebar:collapsed";
+import { SIDEBAR_COOKIE, readConsent, readCookie, writeCookie } from "@/lib/consent";
 
 export function useSidebarState() {
   const [collapsed, setCollapsed] = useState(false);
 
+  // Only read a persisted value when the user has accepted preference cookies.
   useEffect(() => {
-    try { setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1"); } catch { /* ignore */ }
+    if (readConsent() === "accepted") setCollapsed(readCookie(SIDEBAR_COOKIE) === "1");
   }, []);
+
+  // Re-sync when consent is granted later in the session.
+  useEffect(() => {
+    const onConsent = (e: Event) => {
+      const value = (e as CustomEvent<string>).detail;
+      if (value === "accepted") writeCookie(SIDEBAR_COOKIE, collapsed ? "1" : "0");
+    };
+    window.addEventListener("sv:consent", onConsent);
+    return () => window.removeEventListener("sv:consent", onConsent);
+  }, [collapsed]);
 
   const toggleCollapsed = useCallback(() => {
     setCollapsed((v) => {
       const next = !v;
-      try { localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+      // No consent → keep the preference in memory for this session only.
+      if (readConsent() === "accepted") writeCookie(SIDEBAR_COOKIE, next ? "1" : "0");
       return next;
     });
   }, []);
@@ -35,6 +46,7 @@ export function useSidebarState() {
 
   return { collapsed, toggleCollapsed };
 }
+
 
 type Group = { label: string; items: WallNavItem[] };
 

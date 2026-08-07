@@ -2,8 +2,9 @@ import {
   LayoutDashboard, Package, KeyRound, Repeat, Users, ShieldCheck, BadgeCheck,
   ShoppingCart, Wallet, Percent, BarChart3, FileBarChart, ScrollText, Bell,
   Headphones, Settings, ClipboardCheck, Network, BadgeIndianRupee,
-  ChartNoAxesCombined, Goal, Gift, MapPinned, TrendingUp,
+  ChartNoAxesCombined, Goal, Gift, MapPinned, TrendingUp, Keyboard,
 } from "lucide-react";
+
 
 export type WallNavItem = { to: string; label: string; icon: React.ComponentType<{ className?: string }> };
 export type WallNavGroupNode = { label: string; icon: React.ComponentType<{ className?: string }>; items: WallNavItem[] };
@@ -54,7 +55,9 @@ export const NAV: WallNavGroup[] = [
     ],
   },
   { to: "/support", label: "Support", icon: Headphones },
+  { to: "/help", label: "Help & Shortcuts", icon: Keyboard },
   { to: "/settings", label: "Settings", icon: Settings },
+
 ];
 
 
