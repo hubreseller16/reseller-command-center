@@ -86,6 +86,62 @@ export type Database = {
         }
         Relationships: []
       }
+      kyc_documents: {
+        Row: {
+          application_id: string | null
+          created_at: string
+          doc_type: string
+          file_name: string
+          file_size: number
+          id: string
+          mime_type: string | null
+          record_key: string
+          review_note: string | null
+          reviewer: string | null
+          status: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string
+          doc_type?: string
+          file_name: string
+          file_size?: number
+          id?: string
+          mime_type?: string | null
+          record_key: string
+          review_note?: string | null
+          reviewer?: string | null
+          status?: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          file_size?: number
+          id?: string
+          mime_type?: string | null
+          record_key?: string
+          review_note?: string | null
+          reviewer?: string | null
+          status?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kyc_documents_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -127,6 +183,60 @@ export type Database = {
           recipient_id?: string
           title?: string
           type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reseller_applications: {
+        Row: {
+          application_number: string
+          company_name: string
+          contact_name: string | null
+          created_at: string
+          decided_at: string | null
+          email: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          requested_type: string
+          reviewer: string | null
+          risk_score: number
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          application_number: string
+          company_name: string
+          contact_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          requested_type?: string
+          reviewer?: string | null
+          risk_score?: number
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          application_number?: string
+          company_name?: string
+          contact_name?: string | null
+          created_at?: string
+          decided_at?: string | null
+          email?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          requested_type?: string
+          reviewer?: string | null
+          risk_score?: number
+          status?: string
+          submitted_at?: string
           updated_at?: string
         }
         Relationships: []
