@@ -317,6 +317,11 @@ export function GenericWall({ config }: { config: WallConfig }) {
       const copy = { ...row, id: crypto.randomUUID(), created_at: new Date().toISOString() };
       copy[config.primaryField] = `${row[config.primaryField]} (copy)`;
       setRows((p) => [copy, ...p]);
+      if (sync) {
+        void syncInsert(sync, copy).then((saved) => {
+          if (saved) setRows((p) => p.map((r) => (r.id === copy.id ? saved : r)));
+        });
+      }
       void recordAction({ action: `${config.entity}.duplicate`, entityType: config.entity, entityId: copy.id, summary: `Duplicated ${row[config.primaryField]}`, after: copy });
       toast.success(`${cap(config.entity)} duplicated`);
       return;
