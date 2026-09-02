@@ -165,10 +165,24 @@ export function GenericWall({ config }: { config: WallConfig }) {
   const [recent, setRecent] = useLocal<string[]>(lsKey(config.scope, "recent"), []);
 
   // First-paint loading skeleton (no fake latency beyond one frame batch).
+  const sync = config.sync;
+
+  const reload = useMemo(
+    () => async () => {
+      if (!sync) { setLoading(false); return; }
+      setLoading(true);
+      const data = await syncList(sync);
+      if (data) setRows(data);
+      setLoading(false);
+    },
+    [sync],
+  );
+
   useEffect(() => {
+    if (sync) { void reload(); return; }
     const t = setTimeout(() => setLoading(false), 350);
     return () => clearTimeout(t);
-  }, []);
+  }, [sync, reload]);
 
   const visibleColumns = useMemo(() => {
     const order = colOrder.length ? colOrder : config.columns.map((c) => c.key);
