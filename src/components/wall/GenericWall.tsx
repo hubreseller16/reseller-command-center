@@ -103,6 +103,8 @@ export type WallConfig = {
   primaryLabel: string;
   route: string;
   seed: any[];
+  /** When set, the Wall reads and writes real rows in this database table. */
+  sync?: WallSync;
   columns: WallColumn[];
   filters: WallFilterDef[];
   kpis: WallKpi[];
