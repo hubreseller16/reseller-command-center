@@ -397,7 +397,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
         subtitle={config.subtitle}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <ToolBtn label="Refresh" onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 300); toast.success("Refreshed"); }}>
+            <ToolBtn label="Refresh" onClick={() => { void reload().then(() => toast.success("Refreshed")); if (!sync) { setLoading(true); setTimeout(() => setLoading(false), 300); } }}>
               <RefreshCw className="h-3.5 w-3.5" />
             </ToolBtn>
             <ToolBtn label="Import from CSV" onClick={() => setImportOpen(true)}>
