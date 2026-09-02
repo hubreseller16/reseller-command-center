@@ -347,6 +347,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
       const ids = new Set(targets.map((r) => r.id));
       const snapshot = rows;
       setRows((p) => p.filter((r) => !ids.has(r.id)));
+      if (sync) void syncDelete(sync, [...ids]);
       targets.forEach((r) => void recordAction({
         action: `${config.entity}.bulk_delete`, entityType: config.entity, entityId: r.id,
         summary: `Bulk deleted ${r[config.primaryField]}`, before: r,
