@@ -21,6 +21,14 @@ const config: WallConfig = {
   subtitle: "Application intake, risk review and activation for every incoming reseller.",
   icon: ClipboardCheck, primaryLabel: "New Application",
   seed: [],
+  sync: {
+    table: "reseller_applications",
+    columns: [
+      "application_number", "company_name", "contact_name", "email", "phone",
+      "requested_type", "risk_score", "status", "notes", "reviewer",
+      "submitted_at", "decided_at",
+    ],
+  },
   columns: [
     { key: "application_number", header: "Application", render: (r) => <span className="font-mono text-[12px] font-semibold">{r.application_number}</span> },
     { key: "company_name", header: "Company", render: (r) => <div className="font-semibold">{r.company_name}</div> },
