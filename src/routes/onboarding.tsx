@@ -57,8 +57,8 @@ const config: WallConfig = {
   rowActions: [
     { key: "review", label: "Start Review", icon: Search, patch: { status: "in_review" } },
     { key: "info", label: "Request Information", icon: HelpCircle, patch: { status: "needs_information" } },
-    { key: "approve", label: "Approve", icon: CheckCircle2, patch: { status: "approved" } },
-    { key: "reject", label: "Reject", icon: XCircle, patch: { status: "rejected" }, destructive: true },
+    { key: "approve", label: "Approve", icon: CheckCircle2, patch: { status: "approved", decided_at: new Date().toISOString() } },
+    { key: "reject", label: "Reject", icon: XCircle, patch: { status: "rejected", decided_at: new Date().toISOString() }, destructive: true },
   ],
   formFields: [
     { key: "application_number", label: "Application No.", type: "text", required: true, placeholder: "APP-0001" },
