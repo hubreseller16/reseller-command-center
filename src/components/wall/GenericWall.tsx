@@ -715,6 +715,12 @@ export function GenericWall({ config }: { config: WallConfig }) {
           const now = new Date().toISOString();
           const row: Record<string, any> = { ...data, id: crypto.randomUUID(), created_at: now, updated_at: now };
           setRows((p) => [row, ...p]);
+          if (sync) {
+            void syncInsert(sync, data).then((saved) => {
+              if (saved) setRows((p) => p.map((r) => (r.id === row.id ? saved : r)));
+              else setRows((p) => p.filter((r) => r.id !== row.id));
+            });
+          }
           void recordAction({
             action: `${config.entity}.create`, entityType: config.entity, entityId: row.id,
             summary: `Created ${config.entity} "${row[config.primaryField]}"`, after: row,
