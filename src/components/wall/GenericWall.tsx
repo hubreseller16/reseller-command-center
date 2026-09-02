@@ -289,12 +289,23 @@ export function GenericWall({ config }: { config: WallConfig }) {
   const applyRowPatch = (row: any, patch: Record<string, any>, action: string, summary: string) => {
     const updated = { ...row, ...patch, updated_at: new Date().toISOString() };
     setRows((p) => p.map((r) => (r.id === row.id ? updated : r)));
+    if (sync) {
+      void syncUpdate(sync, row.id, patch).then((saved) => {
+        if (saved) setRows((p) => p.map((r) => (r.id === row.id ? saved : r)));
+      });
+    }
     void recordAction({
       action: `${config.entity}.${action}`, entityType: config.entity, entityId: row.id,
       summary, before: row, after: updated,
     });
     toast.success(summary, {
-      action: { label: "Undo", onClick: () => setRows((p) => p.map((r) => (r.id === row.id ? row : r))) },
+      action: {
+        label: "Undo",
+        onClick: () => {
+          setRows((p) => p.map((r) => (r.id === row.id ? row : r)));
+          if (sync) void syncUpdate(sync, row.id, row);
+        },
+      },
     });
   };
 
