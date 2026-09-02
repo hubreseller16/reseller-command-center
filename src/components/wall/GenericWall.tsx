@@ -354,11 +354,15 @@ export function GenericWall({ config }: { config: WallConfig }) {
       }));
       if (openId && ids.has(openId)) setOpenId(null);
       toast.success(`Deleted ${targets.length} ${config.entity}${targets.length === 1 ? "" : "s"}`, {
-        action: { label: "Undo", onClick: () => setRows(snapshot) },
+        action: {
+          label: "Undo",
+          onClick: () => { setRows(snapshot); if (sync) void syncInsertMany(sync, targets).then(() => reload()); },
+        },
       });
     } else if (action.patch) {
       const snapshot = rows;
       setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, ...action.patch, updated_at: now } : r)));
+      if (sync) void syncUpdateMany(sync, targets.map((r) => r.id), action.patch);
       targets.forEach((r) => void recordAction({
         action: `${config.entity}.bulk_${action.key}`, entityType: config.entity, entityId: r.id,
         summary: `Bulk ${action.label} · ${r[config.primaryField]}`,
