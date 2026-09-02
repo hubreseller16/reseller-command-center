@@ -37,6 +37,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { recordAction } from "@/lib/recordAction";
+import {
+  syncDelete, syncInsert, syncInsertMany, syncList, syncUpdate, syncUpdateMany, type WallSync,
+} from "@/lib/wallTable";
 import { useRegisterSearchScope, consumePendingOpen } from "@/lib/searchIndex";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
