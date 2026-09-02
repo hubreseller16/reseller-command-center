@@ -65,6 +65,8 @@ const config: WallConfig = {
     { key: "company_name", label: "Company Name", type: "text", required: true },
     { key: "contact_name", label: "Contact Person", type: "text", required: true },
     { key: "email", label: "Email", type: "email" },
+    { key: "phone", label: "Phone", type: "text" },
+    { key: "reviewer", label: "Assigned Reviewer", type: "text" },
     { key: "requested_type", label: "Requested Tier", type: "select", options: TYPES, defaultValue: "standard" },
     { key: "risk_score", label: "Risk Score", type: "number", help: "0 (lowest) to 100 (highest)." },
     { key: "submitted_at", label: "Submitted On", type: "text", placeholder: "YYYY-MM-DD" },
