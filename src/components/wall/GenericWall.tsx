@@ -683,6 +683,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
                 if (!deleteRow) return;
                 const snapshot = rows;
                 setRows((p) => p.filter((r) => r.id !== deleteRow.id));
+                if (sync) void syncDelete(sync, [deleteRow.id]);
                 void recordAction({
                   action: `${config.entity}.delete`, entityType: config.entity, entityId: deleteRow.id,
                   summary: `Deleted ${deleteRow[config.primaryField]}`, before: deleteRow,
