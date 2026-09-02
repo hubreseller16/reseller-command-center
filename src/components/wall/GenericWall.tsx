@@ -766,6 +766,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
           const now = new Date().toISOString();
           const created = imported.map((d) => ({ ...d, id: crypto.randomUUID(), created_at: now, updated_at: now }));
           setRows((p) => [...created, ...p]);
+          if (sync) void syncInsertMany(sync, imported).then(() => reload());
           void recordAction({
             action: `${config.entity}.import`, entityType: config.entity,
             summary: `Imported ${created.length} ${config.entity}s from CSV`,
