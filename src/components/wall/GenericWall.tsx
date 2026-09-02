@@ -37,6 +37,9 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { recordAction } from "@/lib/recordAction";
+import {
+  syncDelete, syncInsert, syncInsertMany, syncList, syncUpdate, syncUpdateMany, type WallSync,
+} from "@/lib/wallTable";
 import { useRegisterSearchScope, consumePendingOpen } from "@/lib/searchIndex";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -100,6 +103,8 @@ export type WallConfig = {
   primaryLabel: string;
   route: string;
   seed: any[];
+  /** When set, the Wall reads and writes real rows in this database table. */
+  sync?: WallSync;
   columns: WallColumn[];
   filters: WallFilterDef[];
   kpis: WallKpi[];
@@ -160,10 +165,24 @@ export function GenericWall({ config }: { config: WallConfig }) {
   const [recent, setRecent] = useLocal<string[]>(lsKey(config.scope, "recent"), []);
 
   // First-paint loading skeleton (no fake latency beyond one frame batch).
+  const sync = config.sync;
+
+  const reload = useMemo(
+    () => async () => {
+      if (!sync) { setLoading(false); return; }
+      setLoading(true);
+      const data = await syncList(sync);
+      if (data) setRows(data);
+      setLoading(false);
+    },
+    [sync],
+  );
+
   useEffect(() => {
+    if (sync) { void reload(); return; }
     const t = setTimeout(() => setLoading(false), 350);
     return () => clearTimeout(t);
-  }, []);
+  }, [sync, reload]);
 
   const visibleColumns = useMemo(() => {
     const order = colOrder.length ? colOrder : config.columns.map((c) => c.key);
@@ -270,12 +289,23 @@ export function GenericWall({ config }: { config: WallConfig }) {
   const applyRowPatch = (row: any, patch: Record<string, any>, action: string, summary: string) => {
     const updated = { ...row, ...patch, updated_at: new Date().toISOString() };
     setRows((p) => p.map((r) => (r.id === row.id ? updated : r)));
+    if (sync) {
+      void syncUpdate(sync, row.id, patch).then((saved) => {
+        if (saved) setRows((p) => p.map((r) => (r.id === row.id ? saved : r)));
+      });
+    }
     void recordAction({
       action: `${config.entity}.${action}`, entityType: config.entity, entityId: row.id,
       summary, before: row, after: updated,
     });
     toast.success(summary, {
-      action: { label: "Undo", onClick: () => setRows((p) => p.map((r) => (r.id === row.id ? row : r))) },
+      action: {
+        label: "Undo",
+        onClick: () => {
+          setRows((p) => p.map((r) => (r.id === row.id ? row : r)));
+          if (sync) void syncUpdate(sync, row.id, row);
+        },
+      },
     });
   };
 
@@ -287,6 +317,11 @@ export function GenericWall({ config }: { config: WallConfig }) {
       const copy = { ...row, id: crypto.randomUUID(), created_at: new Date().toISOString() };
       copy[config.primaryField] = `${row[config.primaryField]} (copy)`;
       setRows((p) => [copy, ...p]);
+      if (sync) {
+        void syncInsert(sync, copy).then((saved) => {
+          if (saved) setRows((p) => p.map((r) => (r.id === copy.id ? saved : r)));
+        });
+      }
       void recordAction({ action: `${config.entity}.duplicate`, entityType: config.entity, entityId: copy.id, summary: `Duplicated ${row[config.primaryField]}`, after: copy });
       toast.success(`${cap(config.entity)} duplicated`);
       return;
@@ -312,17 +347,22 @@ export function GenericWall({ config }: { config: WallConfig }) {
       const ids = new Set(targets.map((r) => r.id));
       const snapshot = rows;
       setRows((p) => p.filter((r) => !ids.has(r.id)));
+      if (sync) void syncDelete(sync, [...ids]);
       targets.forEach((r) => void recordAction({
         action: `${config.entity}.bulk_delete`, entityType: config.entity, entityId: r.id,
         summary: `Bulk deleted ${r[config.primaryField]}`, before: r,
       }));
       if (openId && ids.has(openId)) setOpenId(null);
       toast.success(`Deleted ${targets.length} ${config.entity}${targets.length === 1 ? "" : "s"}`, {
-        action: { label: "Undo", onClick: () => setRows(snapshot) },
+        action: {
+          label: "Undo",
+          onClick: () => { setRows(snapshot); if (sync) void syncInsertMany(sync, targets).then(() => reload()); },
+        },
       });
     } else if (action.patch) {
       const snapshot = rows;
       setRows((p) => p.map((r) => (selectedIds.has(r.id) ? { ...r, ...action.patch, updated_at: now } : r)));
+      if (sync) void syncUpdateMany(sync, targets.map((r) => r.id), action.patch);
       targets.forEach((r) => void recordAction({
         action: `${config.entity}.bulk_${action.key}`, entityType: config.entity, entityId: r.id,
         summary: `Bulk ${action.label} · ${r[config.primaryField]}`,
@@ -357,7 +397,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
         subtitle={config.subtitle}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            <ToolBtn label="Refresh" onClick={() => { setLoading(true); setTimeout(() => setLoading(false), 300); toast.success("Refreshed"); }}>
+            <ToolBtn label="Refresh" onClick={() => { void reload().then(() => toast.success("Refreshed")); if (!sync) { setLoading(true); setTimeout(() => setLoading(false), 300); } }}>
               <RefreshCw className="h-3.5 w-3.5" />
             </ToolBtn>
             <ToolBtn label="Import from CSV" onClick={() => setImportOpen(true)}>
@@ -643,6 +683,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
                 if (!deleteRow) return;
                 const snapshot = rows;
                 setRows((p) => p.filter((r) => r.id !== deleteRow.id));
+                if (sync) void syncDelete(sync, [deleteRow.id]);
                 void recordAction({
                   action: `${config.entity}.delete`, entityType: config.entity, entityId: deleteRow.id,
                   summary: `Deleted ${deleteRow[config.primaryField]}`, before: deleteRow,
@@ -674,6 +715,12 @@ export function GenericWall({ config }: { config: WallConfig }) {
           const now = new Date().toISOString();
           const row: Record<string, any> = { ...data, id: crypto.randomUUID(), created_at: now, updated_at: now };
           setRows((p) => [row, ...p]);
+          if (sync) {
+            void syncInsert(sync, data).then((saved) => {
+              if (saved) setRows((p) => p.map((r) => (r.id === row.id ? saved : r)));
+              else setRows((p) => p.filter((r) => r.id !== row.id));
+            });
+          }
           void recordAction({
             action: `${config.entity}.create`, entityType: config.entity, entityId: row.id,
             summary: `Created ${config.entity} "${row[config.primaryField]}"`, after: row,
@@ -719,6 +766,7 @@ export function GenericWall({ config }: { config: WallConfig }) {
           const now = new Date().toISOString();
           const created = imported.map((d) => ({ ...d, id: crypto.randomUUID(), created_at: now, updated_at: now }));
           setRows((p) => [...created, ...p]);
+          if (sync) void syncInsertMany(sync, imported).then(() => reload());
           void recordAction({
             action: `${config.entity}.import`, entityType: config.entity,
             summary: `Imported ${created.length} ${config.entity}s from CSV`,

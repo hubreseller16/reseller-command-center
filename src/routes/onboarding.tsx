@@ -21,6 +21,14 @@ const config: WallConfig = {
   subtitle: "Application intake, risk review and activation for every incoming reseller.",
   icon: ClipboardCheck, primaryLabel: "New Application",
   seed: [],
+  sync: {
+    table: "reseller_applications",
+    columns: [
+      "application_number", "company_name", "contact_name", "email", "phone",
+      "requested_type", "risk_score", "status", "notes", "reviewer",
+      "submitted_at", "decided_at",
+    ],
+  },
   columns: [
     { key: "application_number", header: "Application", render: (r) => <span className="font-mono text-[12px] font-semibold">{r.application_number}</span> },
     { key: "company_name", header: "Company", render: (r) => <div className="font-semibold">{r.company_name}</div> },
@@ -49,14 +57,16 @@ const config: WallConfig = {
   rowActions: [
     { key: "review", label: "Start Review", icon: Search, patch: { status: "in_review" } },
     { key: "info", label: "Request Information", icon: HelpCircle, patch: { status: "needs_information" } },
-    { key: "approve", label: "Approve", icon: CheckCircle2, patch: { status: "approved" } },
-    { key: "reject", label: "Reject", icon: XCircle, patch: { status: "rejected" }, destructive: true },
+    { key: "approve", label: "Approve", icon: CheckCircle2, patch: { status: "approved", decided_at: new Date().toISOString() } },
+    { key: "reject", label: "Reject", icon: XCircle, patch: { status: "rejected", decided_at: new Date().toISOString() }, destructive: true },
   ],
   formFields: [
     { key: "application_number", label: "Application No.", type: "text", required: true, placeholder: "APP-0001" },
     { key: "company_name", label: "Company Name", type: "text", required: true },
     { key: "contact_name", label: "Contact Person", type: "text", required: true },
     { key: "email", label: "Email", type: "email" },
+    { key: "phone", label: "Phone", type: "text" },
+    { key: "reviewer", label: "Assigned Reviewer", type: "text" },
     { key: "requested_type", label: "Requested Tier", type: "select", options: TYPES, defaultValue: "standard" },
     { key: "risk_score", label: "Risk Score", type: "number", help: "0 (lowest) to 100 (highest)." },
     { key: "submitted_at", label: "Submitted On", type: "text", placeholder: "YYYY-MM-DD" },
